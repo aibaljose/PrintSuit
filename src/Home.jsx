@@ -1,6 +1,6 @@
 import React from 'react'
 import printer from "./assets/printer.png"
-import Print from "./assets/print.png"
+import Print from "./assets/Print.png"
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import Nav from './nav';
 const Home = () => {
