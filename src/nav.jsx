@@ -2,22 +2,21 @@ import React, { useState, useEffect } from "react";
 import { auth, db } from "./component/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
+import { Menu, X } from "react-feather";
 
 const Nav = () => {
   const [userDetails, setUserDetails] = useState(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false); // State for dropdown visibility
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false); // State for mobile menu
   const navigate = useNavigate();
 
   const fetchUserData = async () => {
     auth.onAuthStateChanged(async (user) => {
       if (user) {
-        console.log(user);
-
         const docRef = doc(db, "Users", user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setUserDetails(docSnap.data());
-          console.log(docSnap.data());
         } else {
           console.log("No user data found");
         }
@@ -35,24 +34,32 @@ const Nav = () => {
     try {
       await auth.signOut();
       window.location.href = "/login";
-      console.log("User logged out successfully!");
     } catch (error) {
       console.error("Error logging out:", error.message);
     }
   }
 
   return (
-    <div className="nav flex items-center h-[80px] justify-between px-[125px] bg-[#fff] shadow-md">
+    <div className="nav bg-white shadow-md flex items-center justify-between px-6 md:px-12 h-[80px]">
       {/* Logo */}
       <div
-        className="title font-bold text-[30px] cursor-pointer"
+        className="title font-bold text-xl md:text-2xl cursor-pointer"
         onClick={() => navigate("/")}
       >
         PrintSuit
       </div>
 
+      {/* Hamburger Menu for Mobile */}
+      <div className="md:hidden" onClick={() => setMenuOpen((prev) => !prev)}>
+        {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+      </div>
+
       {/* Navigation Links */}
-      <ul className="flex items-center justify-center gap-[40px] text-[#6B7589] font-medium">
+      <ul
+        className={`${
+          menuOpen ? "block" : "hidden"
+        } md:flex items-center gap-6 text-gray-700 font-medium absolute md:static top-[80px] left-0 w-full md:w-auto bg-white md:bg-transparent p-4 md:p-0 z-10`}
+      >
         <li className="cursor-pointer hover:text-black" onClick={() => navigate("/")}>Home</li>
         <li className="cursor-pointer hover:text-black" onClick={() => navigate("/about")}>About</li>
         <li className="cursor-pointer hover:text-black" onClick={() => navigate("/services")}>Services</li>
@@ -60,21 +67,21 @@ const Nav = () => {
       </ul>
 
       {/* Profile Section */}
-      <div className="relative">
+      <div className="relative hidden md:block">
         <div
           className="img cursor-pointer"
           onClick={() => setDropdownOpen((prev) => !prev)}
         >
           {userDetails && userDetails.photo ? (
             <img
-              className="rounded-full h-[40px] w-[40px]"
+              className="rounded-full h-10 w-10"
               src={userDetails.photo}
               alt="User"
             />
           ) : (
             <img
-              className="rounded-full h-[40px] w-[40px]"
-              src="https://via.placeholder.com/40" // Dummy profile image
+              className="rounded-full h-10 w-10"
+              src="https://via.placeholder.com/40"
               alt="Placeholder"
             />
           )}
