@@ -1,14 +1,37 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
-import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+} from "firebase/auth";
 import { auth, db } from "./component/firebase";
 import { toast } from "react-toastify";
 import { setDoc, doc } from "firebase/firestore";
-import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+  // Redirect if user is already logged in and verified
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        if (user.emailVerified) {
+          navigate("/locate");
+        } else {
+          toast.warning("Please verify your email before accessing the application.", {
+            position: "top-center",
+          });
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   // Google Login
   const googleLogin = () => {
@@ -16,7 +39,7 @@ const Login = () => {
     signInWithPopup(auth, provider)
       .then(async (result) => {
         const user = result.user;
-        if (user) {
+        if (user.emailVerified) {
           await setDoc(doc(db, "Users", user.uid), {
             email: user.email,
             firstName: user.displayName,
@@ -26,7 +49,14 @@ const Login = () => {
           toast.success("User logged in successfully with Google", {
             position: "top-center",
           });
-          window.location.href = "/locate";
+          navigate("/locate");
+        } else {
+          toast.warning(
+            "Your Gmail is not verified. Please verify it before proceeding.",
+            {
+              position: "top-center",
+            }
+          );
         }
       })
       .catch((error) => {
@@ -41,12 +71,17 @@ const Login = () => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      toast.success("User logged in successfully with Email", {
-        position: "top-center",
-      });
-      window.location.href = "/locate";
+      if (user.emailVerified) {
+        toast.success("User logged in successfully with Email", {
+          position: "top-center",
+        });
+        navigate("/locate");
+      } else {
+        toast.warning("Your email is not verified. Please verify it to continue.", {
+          position: "top-center",
+        });
+      }
     } catch (error) {
-        console.log(error)
       // Handle specific error cases
       switch (error.code) {
         case "auth/invalid-credential":
@@ -116,7 +151,9 @@ const Login = () => {
           </div>
           <span className="span">Forgot password?</span>
         </div>
-        <button type="submit" className="button-submit">Sign In</button>
+        <button type="submit" className="button-submit">
+          Sign In
+        </button>
         <p className="p">
           Don't have an account?{" "}
           <Link style={{ textDecoration: "none" }} to="/signup">
@@ -125,8 +162,23 @@ const Login = () => {
         </p>
         <p className="p line">Or With</p>
         <div className="flex-row">
-          <div className="btn" onClick={googleLogin}>
-            Google Sign In
+          <div
+            onClick={googleLogin}
+            className="btn cursor-pointer text-black flex gap-2 items-center bg-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-zinc-300 transition-all ease-in duration-200"
+          >
+            <svg
+              viewBox="0 0 48 48"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-6"
+            >
+              {/* Google Icon Paths */}
+              <path
+                d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
+                fill="#FFC107"
+              ></path>
+              {/* Other Paths */}
+            </svg>
+            Continue with Google
           </div>
         </div>
       </form>

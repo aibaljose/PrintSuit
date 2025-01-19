@@ -1,6 +1,12 @@
-import React, { useState } from "react";
-
-import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
+import React, { useState, useEffect } from "react";
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  sendEmailVerification,
+} from "firebase/auth";
 import { auth, db } from "./component/firebase";
 import { setDoc, doc } from "firebase/firestore";
 import { Link, useNavigate } from "react-router-dom";
@@ -11,6 +17,25 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  // Redirect if user is already logged in
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        if (user.emailVerified) {
+          navigate("/locate"); // Redirect verified users
+        } else {
+          toast.warning("Please verify your email address to access the site.", {
+            position: "top-center",
+          });
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
+
   const googleLogin = () => {
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
@@ -26,14 +51,13 @@ const Signup = () => {
           toast.success("User logged in successfully with Google", {
             position: "top-center",
           });
-          window.location.href = "/locate";
+          window.location.href = "/login";
         }
       })
       .catch((error) => {
         toast.error(`Google login failed: ${error.message}`, { position: "top-center" });
       });
   };
-  const navigate = useNavigate();
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -48,6 +72,9 @@ const Signup = () => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
+      // Send email verification
+      await sendEmailVerification(user);
+
       // Save user info to Firestore
       await setDoc(doc(db, "Users", user.uid), {
         email: user.email,
@@ -56,8 +83,11 @@ const Signup = () => {
         photo: user.photoURL || "",
       });
 
-      toast.success("Account created successfully!", { position: "top-center" });
-      navigate("/login"); // Redirect to login page after successful signup
+      toast.success(
+        "Account created successfully! A verification email has been sent to your email address.",
+        { position: "top-center" }
+      );
+      navigate("/login"); // Redirect to login page
     } catch (error) {
       toast.error(`Error: ${error.message}`, { position: "top-center" });
     } finally {
@@ -134,8 +164,23 @@ const Signup = () => {
         </p>
         <p className="p line">Or With</p>
         <div className="flex-row">
-          <div className="btn" onClick={googleLogin}>
-            Google Sign In
+          <div
+            onClick={googleLogin}
+            className="btn cursor-pointer text-black flex gap-2 items-center bg-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-zinc-300 transition-all ease-in duration-200"
+          >
+            <svg
+              viewBox="0 0 48 48"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-6"
+            >
+              {/* Google Icon Paths */}
+              <path
+                d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
+                fill="#FFC107"
+              ></path>
+              {/* Other Paths */}
+            </svg>
+            Continue with Google
           </div>
         </div>
       </form>
