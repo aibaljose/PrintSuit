@@ -203,7 +203,8 @@ input:-webkit-autofill {
   position: relative;
   text-align: left;
   border-radius: 0.5rem;
-  max-width: 290px;
+  max-width: 600px;
+  width: 340px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   background-color: #fff;
 }
@@ -284,7 +285,7 @@ input:-webkit-autofill {
 .history {
   display: inline-flex;
   padding: 0.5rem 1rem;
-  background-color: #1aa06d;
+  background-color: #4f46e5;
   color: #ffffff;
   font-size: 1rem;
   line-height: 1.5rem;
@@ -367,5 +368,10 @@ input:-webkit-autofill {
 
 
 
+
+}
+
+.nav{
+  box-shadow: 0px 16px 12px 0px rgba(0, 0, 0, 0.03137254901960784);
 
 }

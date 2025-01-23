@@ -26,9 +26,9 @@ const Signup = () => {
         if (user.emailVerified) {
           navigate("/locate"); // Redirect verified users
         } else {
-          toast.warning("Please verify your email address to access the site.", {
-            position: "top-center",
-          });
+          // toast.warning("Please verify your email address to access the site.", {
+          //   position: "top-center",
+          // });
         }
       }
     });

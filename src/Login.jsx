@@ -23,9 +23,9 @@ const Login = () => {
         if (user.emailVerified) {
           navigate("/locate");
         } else {
-          toast.warning("Please verify your email before accessing the application.", {
-            position: "top-center",
-          });
+          // toast.warning("Please verify your email before accessing the application.", {
+          //   position: "top-center",
+          // });
         }
       }
     });
