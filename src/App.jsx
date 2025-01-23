@@ -1,6 +1,6 @@
 import React from 'react'
 import Login from "./Login"
-import Signup from "./signup"
+import Signup from "./Signup"
 import Home from "./Home"
 import FileUploadPage from "./FileUploadPage"
 import PrinterLocator from './PrinterLocator'
