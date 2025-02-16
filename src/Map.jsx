@@ -3,7 +3,7 @@ import { GoogleMap, useJsApiLoader,MarkerF } from "@react-google-maps/api";
 import pointer from "./assets/pointer.png"
 const containerStyle = {
   width: "100%",
-  height: "600px",
+  height: "100%",
   borderRadius: "20px"
 };
 

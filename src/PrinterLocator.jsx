@@ -214,12 +214,12 @@ const PrinterLocator = () => {
             </div>
           </div>
         </div>
-        <div className="flex gap-6 flex-wrap ">
+        <div className="flex gap-6 lg:flex-wrap w-[100%] flex-col-reverse lg:flex-row ">
           {/* Map Component */}
 
 
           {/* Results */}
-          <div className="h-[100vh] overflow-y-auto  p-4 ddnd">
+          <div className="h-[100vh] lg:overflow-y-auto  p-2 ddnd ">
             <h2 className="text-xl font-semibold text-gray-700 mb-4">
               Nearby Printing Hubs
             </h2>
@@ -239,7 +239,7 @@ const PrinterLocator = () => {
           </div>
 
 
-          <div className="w-[30%]  h-[100%] rounded-lg overflow-hidden shadow ">
+          <div className="lg:w-[30%]  lg:h-[100vh] h-[400px] pt-[20px] rounded-lg lg:overflow-hidden shadow ">
             <Map hubs={filteredHubs} />
           </div>
         </div>

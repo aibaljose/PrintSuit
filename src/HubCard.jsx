@@ -10,7 +10,7 @@ const HubCard = ({ hub }) => {
 
     return (
 
-        <div className="max-w-sm mx-auto w-[280px]">
+        <div className="max-w-sm mx-auto lg:w-[280px] w-[100%]">
        {Isopen ? <Modal2 setisopen={setisopen} hub={hub} /> : null} 
         
         <div className="border rounded-lg shadow-sm bg-white overflow-hidden">

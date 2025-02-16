@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   BarChart2, Printer, AlertCircle, Users, Activity,
   Settings, RefreshCw, Plus, X, MapPin, Power,
-  Clock, Trash2
+  Clock, Trash2,Menu
 } from 'lucide-react';
 import { db, collection, getDocs, addDoc,getDoc, doc, updateDoc, deleteDoc } from "./component/firebase";
 import {query,where,setDoc } from  "firebase/firestore";
@@ -232,9 +232,9 @@ const ManageHubModal = ({ isOpen, onClose, hub, onStatusUpdate, onDelete, loadin
 };
 
 const PrinterHubCard = ({ hub, onEdit, onManage }) => (
-  <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow">
-    <div className="flex justify-between items-center mb-4">
-      <h3 className="text-xl font-semibold">{hub.name}</h3>
+  <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 hover:shadow-xl transition-shadow">
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+      <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0">{hub.name}</h3>
       <span className={`px-3 py-1 rounded-full text-sm 
         ${hub.status === 'Active' ? 'bg-green-100 text-green-800' :
           hub.status === 'Idle' ? 'bg-yellow-100 text-yellow-800' :
@@ -244,10 +244,9 @@ const PrinterHubCard = ({ hub, onEdit, onManage }) => (
     </div>
 
     <div className="space-y-2">
-      <p className="flex items-center">
+      <p className="flex items-center text-sm">
         <MapPin size={16} className="mr-2 text-gray-500" />
         {hub.location[1]}, {hub.location[0]}
-
       </p>
       <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
         <p>Type: {hub.type}</p>
@@ -257,16 +256,16 @@ const PrinterHubCard = ({ hub, onEdit, onManage }) => (
       </div>
     </div>
 
-    <div className="mt-4 flex justify-between">
+    <div className="mt-4 flex flex-col sm:flex-row sm:justify-between space-y-2 sm:space-y-0">
       <button
         onClick={() => onEdit(hub)}
-        className="text-blue-600 hover:underline"
+        className="text-blue-600 hover:underline w-full sm:w-auto text-center"
       >
         Edit Details
       </button>
       <button
         onClick={() => onManage(hub)}
-        className="text-blue-600 hover:underline"
+        className="text-blue-600 hover:underline w-full sm:w-auto text-center"
       >
         Manage Hub
       </button>
@@ -275,14 +274,16 @@ const PrinterHubCard = ({ hub, onEdit, onManage }) => (
 );
 
 const PrintSuitAdminDashboard = () => {
-  const [activePage, setActivePage] = useState('overview');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
-  const [printerHubs, setPrinterHubs] = useState([]);
-  const [editingHub, setEditingHub] = useState(null);
-  const [managingHub, setManagingHub] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+
+    const [activePage, setActivePage] = useState('overview');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+    const [printerHubs, setPrinterHubs] = useState([]);
+    const [editingHub, setEditingHub] = useState(null);
+    const [managingHub, setManagingHub] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
   const [formData, setFormData] = useState({
     id:"",
@@ -502,108 +503,139 @@ const handleDeleteHubByName = async (printerName) => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 lg:flex">
+      {/* Mobile Header */}
+      <div className="lg:hidden bg-white p-4 flex justify-between items-center shadow-md">
+        <h1 className="text-xl font-bold text-gray-800">PrintSuit Admin</h1>
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="p-2 hover:bg-gray-100 rounded-lg"
+        >
+          <Menu size={24} />
+        </button>
+      </div>
+
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-md">
-        <div className="p-5 border-b">
-          <h1 className="text-2xl font-bold text-gray-800">PrintSuit Admin</h1>
+      <div className={`
+        fixed inset-0 z-30 lg:relative lg:z-auto 
+        ${isSidebarOpen ? 'block' : 'hidden lg:block'}
+      `}>
+        {/* Overlay */}
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 lg:hidden "
+          onClick={() => setIsSidebarOpen(false)}
+        />
+
+        {/* Sidebar Content */}
+        <div className="w-64 bg-white shadow-md h-full relative z-40">
+          <div className="p-5 border-b hidden lg:block">
+            <h1 className="text-2xl font-bold text-gray-800">PrintSuit Admin</h1>
+          </div>
+          <nav className="p-4">
+            {[
+              { name: 'Overview', icon: <BarChart2 />, page: 'overview' },
+              { name: 'Printer Management', icon: <Printer />, page: 'printers' },
+              { name: 'User Management', icon: <Users />, page: 'users' },
+              { name: 'Error Logs', icon: <AlertCircle />, page: 'errors' },
+              { name: 'Settings', icon: <Settings />, page: 'settings' }
+            ].map((item) => (
+              <button
+                key={item.page}
+                onClick={() => {
+                  setActivePage(item.page);
+                  setIsSidebarOpen(false);
+                }}
+                className={`flex items-center w-full p-3 mb-2 rounded-lg transition-colors 
+                  ${activePage === item.page ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100 text-gray-600'}`}
+              >
+                {React.cloneElement(item.icon, { className: 'mr-3' })}
+                {item.name}
+              </button>
+            ))}
+          </nav>
         </div>
-        <nav className="p-4">
-          {[
-            { name: 'Overview', icon: <BarChart2 />, page: 'overview' },
-            { name: 'Printer Management', icon: <Printer />, page: 'printers' },
-            { name: 'User Management', icon: <Users />, page: 'users' },
-            { name: 'Error Logs', icon: <AlertCircle />, page: 'errors' },
-            { name: 'Settings', icon: <Settings />, page: 'settings' }
-          ].map((item) => (
-            <button
-              key={item.page}
-              onClick={() => setActivePage(item.page)}
-              className={`flex items-center w-full p-3 mb-2 rounded-lg transition-colors 
-                ${activePage === item.page ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100 text-gray-600'}`}
-            >
-              {React.cloneElement(item.icon, { className: 'mr-3' })}
-              {item.name}
-            </button>
-          ))}
-        </nav>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-10">
-        {activePage === 'overview' && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-              {printerStats.map((stat) => (
-                <div key={stat.name} className="bg-white p-6 rounded-lg shadow-md flex items-center">
-                  {stat.icon}
-                  <div className="ml-4">
-                    <p className="text-gray-500 text-sm">{stat.name}</p>
-                    <h2 className="text-2xl font-bold">{stat.value}</h2>
+      <div className="lg:flex w-[100%]">
+        {/* <div className="hidden lg:block w-64" /> Sidebar spacer */}
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 ">
+          {activePage === 'overview' && (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                {printerStats.map((stat) => (
+                  <div key={stat.name} className="bg-white p-4 sm:p-6 rounded-lg shadow-md flex items-center">
+                    {stat.icon}
+                    <div className="ml-4">
+                      <p className="text-gray-500 text-sm">{stat.name}</p>
+                      <h2 className="text-xl sm:text-2xl font-bold">{stat.value}</h2>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">Recent Errors</h3>
-                <button onClick={fetchPrinterHubs} className="text-blue-600 hover:underline flex items-center">
-                  <RefreshCw size={16} className="mr-2" /> Refresh
+              <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md overflow-x-auto">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-2 sm:space-y-0">
+                  <h3 className="text-lg sm:text-xl font-semibold">Recent Errors</h3>
+                  <button onClick={fetchPrinterHubs} className="text-blue-600 hover:underline flex items-center">
+                    <RefreshCw size={16} className="mr-2" /> Refresh
+                  </button>
+                </div>
+                <div className="min-w-full overflow-hidden overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="p-3 text-left">Error Code</th>
+                        <th className="p-3 text-left">Printer</th>
+                        <th className="p-3 text-left">Time</th>
+                        <th className="p-3 text-left">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentErrors.map((error) => (
+                        <tr key={error.code} className="border-b hover:bg-gray-50">
+                          <td className="p-3 text-red-600">{error.code}</td>
+                          <td className="p-3">{error.printer}</td>
+                          <td className="p-3 text-gray-500">{error.time}</td>
+                          <td className="p-3">
+                            <button className="text-blue-600 hover:underline">Resolve</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+
+          {activePage === 'printers' && (
+            <div>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-2 sm:space-y-0">
+                <h2 className="text-xl sm:text-2xl font-bold flex items-center">
+                  <Printer className="mr-3" /> Printer Hubs
+                </h2>
+                <button
+                  onClick={() => handleOpenModal(null)}
+                  className="flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full sm:w-auto justify-center"
+                >
+                  <Plus size={20} className="mr-2" /> Add Hub
                 </button>
               </div>
-              <table className="w-full">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="p-3 text-left">Error Code</th>
-                    <th className="p-3 text-left">Printer</th>
-                    <th className="p-3 text-left">Time</th>
-                    <th className="p-3 text-left">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentErrors.map((error) => (
-                    <tr key={error.code} className="border-b hover:bg-gray-50">
-                      <td className="p-3 text-red-600">{error.code}</td>
-                      <td className="p-3">{error.printer}</td>
-                      <td className="p-3 text-gray-500">{error.time}</td>
-                      <td className="p-3">
-                        <button className="text-blue-600 hover:underline">Resolve</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
 
-        {activePage === 'printers' && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold flex items-center">
-                <Printer className="mr-3" /> Printer Hubs
-              </h2>
-              <button
-                onClick={() => handleOpenModal(null)}
-                className="flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              >
-                <Plus size={20} className="mr-2" /> Add Hub
-              </button>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {printerHubs.map((hub) => (
+                  <PrinterHubCard
+                    key={hub.id}
+                    hub={hub}
+                    onEdit={handleOpenModal}
+                    onManage={handleManageHub}
+                  />
+                ))}
+              </div>
             </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {printerHubs.map((hub) => (
-                <PrinterHubCard
-                  key={hub.id}
-                  hub={hub}
-                  onEdit={handleOpenModal}
-                  onManage={handleManageHub}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Modals */}
