@@ -1,7 +1,11 @@
-import React, { useEffect } from 'react'
+import React, { useEffect,useState } from 'react'
 import printer from "./assets/printer.png"
 import Print from "./assets/Print.png"
 import { Link, useNavigate } from 'react-router-dom';
+import Login from "./loginmodal";
+import LoginModal from './loginmodal';
+import SignupModal from './SignupModal';
+
 import {
 
     onAuthStateChanged,
@@ -25,14 +29,37 @@ const Home = () => {
 
     //     return () => unsubscribe();
     // }, [navigate]);
+    const [isLoginOpen, setIsLoginOpen] = useState(false);
+    const [isSignupOpen, setIsSignupOpen] = useState(false);
+    const switchToLogin = () => {
+        setIsSignupOpen(false);
+        setIsLoginOpen(true);
+      };
+    
+      const switchToSignup = () => {
+        setIsLoginOpen(false);
+        setIsSignupOpen(true);
+      };
     return (
         <div className='Home'>
-            <Nav />
+            <Nav  switchToSignup={switchToLogin} />
 
 
 
             <div className="bg-white">
+            <LoginModal 
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        navigate={navigate}
+        switchToSignup={switchToSignup}
+      />
 
+      <SignupModal
+        isOpen={isSignupOpen}
+        onClose={() => setIsSignupOpen(false)}
+        navigate={navigate}
+        switchToLogin={switchToLogin}
+      />
 
                 <div className="relative isolate px-6 pt-4 lg:px-8">
                     <div
@@ -48,9 +75,9 @@ const Home = () => {
                         ></div>
                     </div>
                     <div className="mx-auto max-w-2xl py-10 sm:py-20 lg:py-40">
-                    
+
                         <div className="hidden sm:mb-8 sm:flex sm:justify-center column">
-                        
+
                             <div className="relative rounded-full px-3 py-1 text-sm/6 text-gray-600 ring-1 ring-gray-900/10 hover:ring-gray-900/20">
                                 Announcing our next round of funding.{" "}
                                 <a
@@ -63,7 +90,7 @@ const Home = () => {
                             </div>
                         </div>
                         <div className="text-center">
-                       
+
                             <h1 className="text-balance text-5xl font-semibold tracking-tight text-gray-900 sm:text-7xl">
                                 Print Anytime, Anywhere  Seamlessly and Securely"
                             </h1>
@@ -71,10 +98,7 @@ const Home = () => {
                                 Your one-stop solution for hassle-free remote printing. Find printers near you, upload files, and manage print jobs with ease.
                             </p>
                             <div className="mt-10 flex items-center justify-center gap-x-6">
-                                <a onClick={() => {
-                  
-                  navigate("/login");
-                }}
+                                <a onClick={() => setIsLoginOpen(true)}
                                     href="#"
                                     className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                                 >
@@ -86,8 +110,8 @@ const Home = () => {
                             </div>
                         </div>
                         <div className="flex justify-center items-center">
-                     <img src={printer} alt="" height="300"  width="300"/>
-                     </div>
+                            <img src={printer} alt="" height="300" width="300" />
+                        </div>
                     </div>
                     <div
                         className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
@@ -111,49 +135,49 @@ const Home = () => {
 
 
             <div className="bg-white py-24 sm:py-32">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <h2 className="text-center text-lg/8 font-semibold text-gray-900">
-          Trusted by the world’s most innovative teams
-        </h2>
-        <div className="mx-auto mt-10 grid max-w-lg grid-cols-4 items-center gap-x-8 gap-y-10 sm:max-w-xl sm:grid-cols-6 sm:gap-x-10 lg:mx-0 lg:max-w-none lg:grid-cols-5">
-          <img
-            alt="Transistor"
-            src="https://tailwindui.com/plus/img/logos/158x48/transistor-logo-gray-900.svg"
-            width={158}
-            height={48}
-            className="col-span-2 max-h-12 w-full object-contain lg:col-span-1"
-          />
-          <img
-            alt="Reform"
-            src="https://tailwindui.com/plus/img/logos/158x48/reform-logo-gray-900.svg"
-            width={158}
-            height={48}
-            className="col-span-2 max-h-12 w-full object-contain lg:col-span-1"
-          />
-          <img
-            alt="Tuple"
-            src="https://tailwindui.com/plus/img/logos/158x48/tuple-logo-gray-900.svg"
-            width={158}
-            height={48}
-            className="col-span-2 max-h-12 w-full object-contain lg:col-span-1"
-          />
-          <img
-            alt="SavvyCal"
-            src="https://tailwindui.com/plus/img/logos/158x48/savvycal-logo-gray-900.svg"
-            width={158}
-            height={48}
-            className="col-span-2 max-h-12 w-full object-contain sm:col-start-2 lg:col-span-1"
-          />
-          <img
-            alt="Statamic"
-            src="https://tailwindui.com/plus/img/logos/158x48/statamic-logo-gray-900.svg"
-            width={158}
-            height={48}
-            className="col-span-2 col-start-2 max-h-12 w-full object-contain sm:col-start-auto lg:col-span-1"
-          />
-        </div>
-      </div>
-    </div>
+                <div className="mx-auto max-w-7xl px-6 lg:px-8">
+                    <h2 className="text-center text-lg/8 font-semibold text-gray-900">
+                        Trusted by the world’s most innovative teams
+                    </h2>
+                    <div className="mx-auto mt-10 grid max-w-lg grid-cols-4 items-center gap-x-8 gap-y-10 sm:max-w-xl sm:grid-cols-6 sm:gap-x-10 lg:mx-0 lg:max-w-none lg:grid-cols-5">
+                        <img
+                            alt="Transistor"
+                            src="https://tailwindui.com/plus/img/logos/158x48/transistor-logo-gray-900.svg"
+                            width={158}
+                            height={48}
+                            className="col-span-2 max-h-12 w-full object-contain lg:col-span-1"
+                        />
+                        <img
+                            alt="Reform"
+                            src="https://tailwindui.com/plus/img/logos/158x48/reform-logo-gray-900.svg"
+                            width={158}
+                            height={48}
+                            className="col-span-2 max-h-12 w-full object-contain lg:col-span-1"
+                        />
+                        <img
+                            alt="Tuple"
+                            src="https://tailwindui.com/plus/img/logos/158x48/tuple-logo-gray-900.svg"
+                            width={158}
+                            height={48}
+                            className="col-span-2 max-h-12 w-full object-contain lg:col-span-1"
+                        />
+                        <img
+                            alt="SavvyCal"
+                            src="https://tailwindui.com/plus/img/logos/158x48/savvycal-logo-gray-900.svg"
+                            width={158}
+                            height={48}
+                            className="col-span-2 max-h-12 w-full object-contain sm:col-start-2 lg:col-span-1"
+                        />
+                        <img
+                            alt="Statamic"
+                            src="https://tailwindui.com/plus/img/logos/158x48/statamic-logo-gray-900.svg"
+                            width={158}
+                            height={48}
+                            className="col-span-2 col-start-2 max-h-12 w-full object-contain sm:col-start-auto lg:col-span-1"
+                        />
+                    </div>
+                </div>
+            </div>
 
 
 
@@ -272,7 +296,7 @@ const Home = () => {
 
 
 
-            
+
 
         </div>
     )

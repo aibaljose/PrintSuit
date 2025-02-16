@@ -46,7 +46,7 @@ const Signup = () => {
             email: user.email,
             firstName: user.displayName,
             photo: user.photoURL,
-            lastName: "",
+            role: "user",
           });
           toast.success("User logged in successfully with Google", {
             position: "top-center",

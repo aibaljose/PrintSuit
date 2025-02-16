@@ -2,6 +2,7 @@ import React from 'react'
 import Login from "./Login"
 import Signup from "./Signup"
 import Home from "./Home"
+import Admin from "./Admin"
 import FileUploadPage from "./FileUploadPage"
 import PrinterLocator from './PrinterLocator'
 import 'react-toastify/dist/ReactToastify.css';
@@ -20,6 +21,10 @@ const App = () => {
           <Route path="/locate" Component={PrinterLocator} />
           <Route path="/upload" Component={FileUploadPage} />
           <Route path='/' exact Component={Home} />
+          <Route path='/admin'  Component={Admin} />
+
+
+
           {/* <Route path="/register"  element={<Form />} />
           <Route path="/ticket"  Component={Ticket} />
           <Route path="/dashboard"  Component={Dashboard} /> */}

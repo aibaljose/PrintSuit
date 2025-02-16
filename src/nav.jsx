@@ -11,7 +11,7 @@ import {
   Menu 
 } from "react-feather";
 
-const Nav = () => {
+const Nav = ({switchToSignup}) => {
   const [userDetails, setUserDetails] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,6 +27,9 @@ const Nav = () => {
           setUserDetails(docSnap.data());
         }
       }
+      else{
+        navigate("/");
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -34,7 +37,7 @@ const Nav = () => {
   const handleLogout = async () => {
     try {
       await auth.signOut();
-      navigate("/login");
+      navigate("/");
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -54,12 +57,15 @@ const Nav = () => {
   };
 
   const renderProfileIcon = () => {
+    {console.log(userDetails.photo)}
     return userDetails?.photo ? (
       <img
         src={userDetails.photo}
+       
         alt="Profile"
         className="rounded-full h-10 w-10 object-cover"
       />
+      
     ) : (
       <UserIcon className="h-10 w-10 text-gray-600" />
     );
@@ -118,7 +124,7 @@ const Nav = () => {
               </div>
             ) : (
               <button 
-                onClick={() => navigate("/login")}
+                onClick={() => switchToSignup()}
                 className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
               >
                 Login

@@ -203,8 +203,8 @@ input:-webkit-autofill {
   position: relative;
   text-align: left;
   border-radius: 0.5rem;
-  max-width: 600px;
-  width: 340px;
+  max-width: 500px;
+  max-width: 340px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   background-color: #fff;
 }
@@ -374,4 +374,8 @@ input:-webkit-autofill {
 .nav{
   box-shadow: 0px 16px 12px 0px rgba(0, 0, 0, 0.03137254901960784);
 
+}
+
+.ddnd::-webkit-scrollbar {
+  width: 8px; /* Change width */
 }

@@ -96,7 +96,7 @@ const Modal2 = ({ setisopen, hub }) => {
             {/* Actions */}
             <div className="flex items-center mt-4">
               <span className="text-xl font-medium text-gray-900">₹ 1/<span className='text-[12px]' >per paper(color)</span></span>
-              <span className="text-xl font-medium text-gray-900">₹ 1/<span className='text-[12px]' >per paper(color)</span></span>
+              {/* <span className="text-xl font-medium text-gray-900">₹ 1/<span className='text-[12px]' >per paper(color)</span></span> */}
               <div className="ml-auto flex space-x-2">
                 <button onClick={() => navigate("/upload")} className="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
                   Upload file

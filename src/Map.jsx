@@ -1,9 +1,9 @@
 import React from "react";
 import { GoogleMap, useJsApiLoader,MarkerF } from "@react-google-maps/api";
-
+import pointer from "./assets/pointer.png"
 const containerStyle = {
   width: "100%",
-  height: "300px",
+  height: "600px",
   borderRadius: "20px"
 };
 
@@ -184,15 +184,25 @@ const Map = ({ hubs }) => {
   return (
     <GoogleMap
       mapContainerStyle={containerStyle}
-      center={{ lat: 10.8505, lng: 76.2711 }}
+      
+      center={
+        hubs.length > 0
+          ? { lat: hubs[0].location[0], lng: hubs[0].location[1] }
+          : { lat: 10.8505, lng: 76.2711 } // Default location
+      }
       zoom={10}
       options={mapOptions} // Apply custom styles here
     >
       {/* Add your markers */}
       {hubs.map((hub, index) => (
+        
         <MarkerF
           key={index}
-          position={{ lat: hub.location.lat, lng: hub.location.lng }} // Assuming 'lat' and 'lng' are in 'hubs'
+          position={{ lat: hub.location[0], lng: hub.location[1] }} // Assuming 'lat' and 'lng' are in 'hubs'
+          icon={{
+            url: pointer, // Ensure 'pointer' is a valid image URL or import
+            scaledSize: new window.google.maps.Size(30, 30), // Adjust width & height
+          }}
         />
         
 
