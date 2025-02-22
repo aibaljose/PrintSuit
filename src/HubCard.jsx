@@ -1,93 +1,73 @@
 import React, { useState } from "react";
-import Print from "./assets/Print.png"
-import Modal2 from "./Modal2"
+import { MapPin, Star, ChevronRight, CircleDot } from "lucide-react";
+import Modal2 from "./Modal2";
+import printer from "./assets/color.png";
+
 const HubCard = ({ hub }) => {
-    const [Isopen, setisopen] = useState(false)
-    const onSeeDetails = () => {
+  const [isOpen, setIsOpen] = useState(false);
 
-
-    }
-
-    return (
-
-        <div className="max-w-sm mx-auto lg:w-[280px] w-[100%]">
-       {Isopen ? <Modal2 setisopen={setisopen} hub={hub} /> : null} 
-        
-        <div className="border rounded-lg shadow-sm bg-white overflow-hidden">
-          <div className="p-4">
-            {/* Status Badge */}
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-sm text-green-500 flex items-center">
-                <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                {hub.status}
-              </span>
-            </div>
-  
-            {/* Printer Image */}
-            <div className="flex flex-col items-center mb-2 bg-[#f5f5f5] rounded-xl">
-              <img 
-                src={Print} 
-                alt={hub.name}
-                className="h-[150px] mb-3 object-fill"
-              />
-            </div>
-  
-            {/* Content */}
-            <div className="space-y-2">
-              <h3 className="text-lg font-medium text-gray-900">{hub.name}</h3>
-              <div className="flex items-center text-sm text-gray-600">
-                <svg 
-                  className="w-4 h-4 mr-1" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  />
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                {hub.address}
-              </div>
-              <div className="flex items-center text-sm">
-                <span className="text-yellow-400 mr-1">★</span>
-                <span>{hub.rating}</span>
-                <span className="text-gray-400 ml-1">({hub.reviews} Reviews)</span>
-              </div>
-            </div>
-  
-            {/* Action Button */}
-            <button
-              onClick={() => setisopen(true)}
-              className="w-full mt-4 bg-teal-400 text-white py-2 px-4 rounded-md hover:bg-teal-500 transition-colors"
-            >
-              See Details
-            </button>
+  return (
+    <div className="w-full max-w-sm  mx-auto">
+      {isOpen && <Modal2 setisopen={setIsOpen} hub={hub} />}
+      
+      <div className=" group relative bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+        {/* Status Badge */}
+        <div className="absolute top-4 left-4 z-10">
+          <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full">
+            <CircleDot className="w-4 h-4 text-emerald-500"  />
+            <span className="text-sm font-medium text-emerald-700">{hub.status}</span>
           </div>
         </div>
+
+        {/* Image Container */}
+        <div className="relative w-full aspect-square bg-gray-50 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent" />
+          <img
+            src={printer}
+            alt={hub.name}
+            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+          />
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-4">
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-gray-900 leading-tight">
+              {hub.name}
+            </h3>
+            
+            <div className="flex items-center gap-1.5 text-gray-500">
+              <MapPin className="w-4 h-4" />
+              <span className="text-sm truncate">{hub.address}</span>
+            </div>
+          </div>
+
+          {/* Rating */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1">
+              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+              <span className="font-medium">{hub.rating}</span>
+            </div>
+            <div className="w-1 h-1 bg-gray-300 rounded-full" />
+            <span className="text-sm text-gray-500">
+              {hub.reviews} Reviews
+            </span>
+          </div>
+
+          {/* Action Button */}
+          <button
+            onClick={() => setIsOpen(true)}
+            className="w-full bg-black text-white mt-2 px-4 py-3 rounded-xl font-medium 
+                     flex items-center justify-center gap-2 group/button
+                     hover:bg-gray-800 active:bg-gray-900 transition-colors duration-200"
+          >
+            <span>View </span>
+            <ChevronRight className="w-4 h-4 transition-transform duration-200 group-hover/button:translate-x-0.5" />
+          </button>
+        </div>
       </div>
-
-
-        // <div className="hub-card">
-        //   <img src={Print} alt={hub.name} className="hub-image" />
-        //   <h3>{hub.name}</h3>
-        //   <p>{hub.address}</p>
-        //   <p>
-        //     <strong>Rating:</strong> {hub.rating} ★
-        //   </p>
-        //   <button className="details-btn">See Details</button>
-
-
-        // </div>
-    );
+    </div>
+  );
 };
 
 export default HubCard;

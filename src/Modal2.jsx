@@ -1,61 +1,97 @@
 import React, { useState } from 'react';
+import { ChevronRight, Heart, Upload, Star, MapPin, Printer } from 'lucide-react';
 import printer from "./assets/color.png";
 import { useNavigate } from "react-router-dom";
-
+import { X } from 'lucide-react';
 const Modal2 = ({ setisopen, hub }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("description");
+  const [isLiked, setIsLiked] = useState(false);
+
+  const TabButton = ({ tab }) => (
+    <button
+      className={`group flex-1 py-4 relative transition-colors duration-200
+        ${activeTab === tab ? 'text-black' : 'text-gray-400 hover:text-gray-600'}`}
+      onClick={() => setActiveTab(tab)}
+    >
+      <span className="text-sm font-medium capitalize">{tab}</span>
+      {activeTab === tab && (
+        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black rounded-full" />
+      )}
+    </button>
+  );
 
   const renderContent = () => {
     switch (activeTab) {
       case "description":
         return (
-          <>
-            <p className="text-sm md:text-base leading-relaxed mb-4">
+          <div className="space-y-6">
+            <p className="text-gray-600">
               {hub.description || "No description available."}
             </p>
-            <div className="grid grid-cols-2 gap-2 border-t border-gray-200 py-2">
-              <span className="text-gray-500 text-sm md:text-base">Color</span>
-              <span className="text-gray-900 text-sm md:text-base text-right">Blue</span>
-              <span className="text-gray-500 text-sm md:text-base">Size</span>
-              <span className="text-gray-900 text-sm md:text-base text-right">Medium</span>
-              <span className="text-gray-500 text-sm md:text-base">Quantity</span>
-              <span className="text-gray-900 text-sm md:text-base text-right">4</span>
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { label: "Color", value: "Blue" },
+                { label: "Size", value: "Medium" },
+                { label: "Quantity", value: "4" }
+              ].map(({ label, value }) => (
+                <div key={label} className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-500 mb-1">{label}</p>
+                  <p className="font-medium">{value}</p>
+                </div>
+              ))}
             </div>
-          </>
+          </div>
         );
       case "reviews":
         return (
-          <div>
-            <p className="leading-relaxed mb-4">User Reviews:</p>
-            <ul className="space-y-2">
-              {["Great quality prints!", "Fast and efficient service.", "Could improve on availability."].map((review, index) => (
-                <li key={index} className="flex items-center">
-                  {[...Array(index + 3)].map((_, starIndex) => (
-                    <span key={starIndex} className="text-yellow-500">★</span>
-                  ))}
-                  <span className="ml-2 text-sm">{review}</span>
-                </li>
-              ))}
-            </ul>
+          <div className="space-y-4">
+
+            {[
+              { rating: 5, text: "Great quality prints!", user: "Alex M." },
+              { rating: 4, text: "Fast and efficient service.", user: "Sarah K." },
+              { rating: 3, text: "Could improve on availability.", user: "John D." }
+            ].map((review, index) => (
+              <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="flex gap-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        size={16}
+                        className={i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-200"}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm font-medium text-gray-600">{review.user}</span>
+                </div>
+                <p className="text-gray-600">{review.text}</p>
+              </div>
+            ))}
           </div>
         );
       case "details":
         return (
-          <div>
-            <p className="leading-relaxed mb-4">Details:</p>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <strong>Location:</strong>
-                <span>{hub.address}</span>
+          <div className="space-y-4">
+            <div className="bg-gray-50 p-4 rounded-lg flex items-start gap-3">
+              <MapPin className="text-gray-400 mt-1" size={20} />
+              <div>
+                <p className="font-medium mb-1">Location</p>
+                <p className="text-gray-600">{hub.address}</p>
               </div>
-              <div className="flex justify-between">
-                <strong>Type:</strong>
-                <span>Color Printer</span>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg flex items-start gap-3">
+              <Printer className="text-gray-400 mt-1" size={20} />
+              <div>
+                <p className="font-medium mb-1">Printer Type</p>
+                <p className="text-gray-600">Color Printer</p>
               </div>
-              <div className="flex justify-between">
-                <strong>Rating:</strong>
-                <span>{hub.rating} ★</span>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg flex items-start gap-3">
+              <Star className="text-gray-400 mt-1" size={20} />
+              <div>
+                <p className="font-medium mb-1">Rating</p>
+                <p className="text-gray-600">{hub.rating} out of 5</p>
               </div>
             </div>
           </div>
@@ -66,52 +102,59 @@ const Modal2 = ({ setisopen, hub }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-lg max-w-4xl w-full mx-auto overflow-hidden shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto backdrop-blur-sm">
+
+      <div className="bg-white rounded-2xl max-w-5xl w-full mx-auto shadow-2xl">
         <div className="flex flex-col md:flex-row">
-          {/* Left Side - Text Content */}
-          <div className="w-full md:w-1/2 p-6">
-            <h2 className="text-sm text-gray-500 tracking-widest">{hub.address}</h2>
-            <h1 className="text-2xl md:text-3xl font-medium mb-4">{hub.name}</h1>
+          <div className="w-full md:w-1/2 p-8">
             
-            {/* Tabs */}
-            <div className="flex mb-4">
+            <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+            
+              <MapPin size={16} />
+              {hub.address}
+            </div>
+            <h1 className="text-3xl font-semibold mb-8">{hub.name}</h1>
+
+            <div className="flex border-b mb-6">
               {["description", "reviews", "details"].map((tab) => (
-                <button
-                  key={tab}
-                  className={`flex-grow py-2 text-sm md:text-lg px-1 capitalize 
-                    ${activeTab === tab 
-                      ? "text-indigo-500 border-b-2 border-indigo-500" 
-                      : "border-b-2 border-gray-300"}`}
-                  onClick={() => setActiveTab(tab)}
-                >
-                  {tab}
-                </button>
+                <TabButton key={tab} tab={tab} />
               ))}
             </div>
-            
-            {/* Dynamic Content */}
-            {renderContent()}
-            
-            {/* Actions */}
-            <div className="flex items-center mt-4">
-              <span className="text-xl font-medium text-gray-900">₹ 1/<span className='text-[12px]' >per paper(color)</span></span>
-              {/* <span className="text-xl font-medium text-gray-900">₹ 1/<span className='text-[12px]' >per paper(color)</span></span> */}
-              <div className="ml-auto flex space-x-2">
-                <button onClick={() => navigate("/upload")} className="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
-                  Upload file
-                </button>
-                <button className="bg-gray-200 rounded-full w-10 h-10 flex items-center justify-center">
-                  <svg fill="currentColor" viewBox="0 0 24 24" className="w-5 h-5 text-gray-500">
-                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path>
-                  </svg>
-                </button>
+
+            <div className="mb-8">
+              {renderContent()}
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <p className="text-sm text-gray-500 mb-1">Price per page</p>
+                <p className="text-2xl font-semibold">₹1 <span className="text-sm font-normal text-gray-500">/ color</span></p>
               </div>
+              <button
+                onClick={() => setIsLiked(!isLiked)}
+                className={`p-3 rounded-full transition-colors duration-200 ${isLiked ? 'bg-pink-50' : 'bg-gray-100 hover:bg-gray-200'
+                  }`}
+              >
+                <Heart
+                  size={20}
+                  className={`transition-colors duration-200 ${isLiked ? 'fill-pink-500 text-pink-500' : 'text-gray-600'
+                    }`}
+                />
+              </button>
+              <button onClick={() => navigate("/upload", { state: { hubname: hub.name } })} className="bg-black text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-800 transition-colors duration-200">
+                Upload file
+                <Upload size={18} />
+              </button>
             </div>
           </div>
-          
-          {/* Right Side - Image */}
-          <div className="hidden md:block w-1/2">
+
+          <div className="hidden md:block w-1/2 bg-gray-100 rounded-r-2xl overflow-hidden relative">
+          <button
+              onClick={() => setisopen(false)}
+              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <X size={20} />
+            </button>
             <img
               alt="printer"
               className="w-full h-full object-cover"

@@ -7,6 +7,9 @@ import FileUploadPage from "./FileUploadPage"
 import PrinterLocator from './PrinterLocator'
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
+import paysucess from "./paysucess";
+import Payment from './payment';
+import Profile from "./profile"
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 const App = () => {
   return (
@@ -22,6 +25,9 @@ const App = () => {
           <Route path="/upload" Component={FileUploadPage} />
           <Route path='/' exact Component={Home} />
           <Route path='/admin'  Component={Admin} />
+          <Route path='/payment'  Component={Payment} />
+          <Route path='/paysucess'  Component={paysucess} />
+          <Route path='/profile'  Component={Profile} />
 
 
 

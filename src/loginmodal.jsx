@@ -5,75 +5,101 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
-  onAuthStateChanged,
 } from "firebase/auth";
 import { auth, db } from "./component/firebase";
-import { setDoc, doc } from "firebase/firestore";
 import { toast } from "react-toastify";
+import axios from 'axios';
 
-const LoginModal = ({ isOpen, onClose, navigate,switchToSignup }) => {
+const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
 
   // Google Login
-  const googleLogin = () => {
-    const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider)
-      .then(async (result) => {
-        const user = result.user;
-        if (user.emailVerified) {
-          await setDoc(doc(db, "Users", user.uid), {
-            email: user.email,
-            firstName: user.displayName,
-            photo: user.photoURL,
-            lastName: "",
-          });
-          toast.success("User logged in successfully with Google", { position: "top-center" });
-          navigate("/locate");
-          onClose();
-        } else {
-          toast.warning("Your Gmail is not verified. Please verify it before proceeding.", { position: "top-center" });
-        }
-      })
-      .catch((error) => {
-        toast.error(`Google login failed: ${error.message}`, { position: "top-center" });
-      });
+  const googleLogin = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      if (user.emailVerified) {
+        // Get JWT token from backend
+        const response = await axios.post('http://localhost:5000/auth/google', {
+          uid: user.uid,
+          email: user.email,
+          name: user.displayName,
+          photo: user.photoURL
+        });
+
+        // Store JWT token
+        localStorage.setItem('token', response.data.token);
+       
+
+        toast.success("Successfully logged in with Google", { position: "top-center" });
+        navigate("/locate");
+        onClose();
+      } else {
+        toast.warning("Please verify your Gmail before proceeding.", { position: "top-center" });
+      }
+    } catch (error) {
+      toast.error(`Google login failed: ${error.message}`, { position: "top-center" });
+    }
   };
 
   // Email and Password Login
   const handleEmailPasswordLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
     try {
+      // First authenticate with Firebase
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
       if (user.emailVerified) {
-        toast.success("User logged in successfully with Email", { position: "top-center" });
+        // Get JWT token from backend
+        const response = await axios.post('http://localhost:5000/login', {
+          email: user.email,
+          uid: user.uid,
+        });
+
+        // Store JWT token
+        localStorage.setItem('token', response.data.token);
+        console.log( response.data.token);
+
+        toast.success("Successfully logged in", { position: "top-center" });
         navigate("/locate");
         onClose();
       } else {
-        toast.warning("Your email is not verified. Please verify it to continue.", { position: "top-center" });
+        toast.warning("Please verify your email to continue.", { position: "top-center" });
       }
     } catch (error) {
-      switch (error.code) {
-        case "auth/invalid-credential":
-          toast.error("No user found with this email. Please sign up first.", { position: "top-center" });
-          break;
-        case "auth/wrong-password":
-          toast.error("Incorrect password. Please try again.", { position: "top-center" });
-          break;
-        case "auth/invalid-email":
-          toast.error("Invalid email format. Please enter a valid email.", { position: "top-center" });
-          break;
-        case "auth/too-many-requests":
-          toast.error("Too many login attempts. Please try again later.", { position: "top-center" });
-          break;
-        default:
-          toast.error(`Login failed: ${error.message}`, { position: "top-center" });
-          break;
-      }
+      handleLoginError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Error handler function
+  const handleLoginError = (error) => {
+    switch (error.code) {
+      case "auth/invalid-credential":
+        toast.error("Invalid credentials. Please check your email and password.", { position: "top-center" });
+        break;
+      case "auth/wrong-password":
+        toast.error("Incorrect password.", { position: "top-center" });
+        break;
+      case "auth/invalid-email":
+        toast.error("Invalid email format.", { position: "top-center" });
+        break;
+      case "auth/too-many-requests":
+        toast.error("Too many login attempts. Please try again later.", { position: "top-center" });
+        break;
+      default:
+        toast.error(`Login failed: ${error.message}`, { position: "top-center" });
+        break;
     }
   };
 
@@ -168,9 +194,10 @@ const LoginModal = ({ isOpen, onClose, navigate,switchToSignup }) => {
 
             <button
               type="submit"
-              className="w-full rounded-md bg-[#2d79f3] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#1b5dc7] transition-colors"
+              disabled={loading}
+              className="w-full rounded-md bg-[#2d79f3] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#1b5dc7] transition-colors disabled:opacity-50"
             >
-              Sign In
+              {loading ? "Signing In..." : "Sign In"}
             </button>
           </form>
 
@@ -180,7 +207,7 @@ const LoginModal = ({ isOpen, onClose, navigate,switchToSignup }) => {
               <button 
                 onClick={() => {
                   onClose();
-                  switchToSignup()
+                  switchToSignup();
                 }}
                 className="font-medium text-[#2d79f3] hover:text-[#1b5dc7]"
               >
@@ -199,8 +226,10 @@ const LoginModal = ({ isOpen, onClose, navigate,switchToSignup }) => {
               </div>
 
               <button
+                type="button"
                 onClick={googleLogin}
-                className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                disabled={loading}
+                className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
                 <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
                   <path d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" fill="#FFC107"></path>

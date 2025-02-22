@@ -379,3 +379,7 @@ input:-webkit-autofill {
 .ddnd::-webkit-scrollbar {
   width: 8px; /* Change width */
 }
+
+.mmmm{
+box-shadow: 0px 16px 12px 0px rgba(0, 0, 0, 0.03137254901960784);
+}

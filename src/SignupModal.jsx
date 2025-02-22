@@ -1,90 +1,80 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import { toast } from "react-toastify";
+import axios from 'axios';
+import { api } from './api';
+import { auth, db } from "./component/firebase";
 import {
     GoogleAuthProvider,
     signInWithPopup,
-    createUserWithEmailAndPassword,
-    sendEmailVerification,
-} from "firebase/auth";
-import { auth, db } from "./component/firebase";
-import { setDoc, doc } from "firebase/firestore";
-import { toast } from "react-toastify";
-
+    signInWithEmailAndPassword,
+    sendPasswordResetEmail,
+  } from "firebase/auth";
 const SignupModal = ({ isOpen, onClose, navigate, switchToLogin }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [name, setName] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
-    const errorMessages = {
-        "auth/wrong-password": "Incorrect password. Please try again.",
-        "auth/user-not-found": "No account found with this email.",
-        "auth/email-already-in-use": "This email is already registered.",
-        "network-error": "Network issue. Check your internet connection.",
-        "default": "An unexpected error occurred. Please try again.",
-    };
 
     if (!isOpen) return null;
 
-    const googleLogin = () => {
-        const provider = new GoogleAuthProvider();
-        signInWithPopup(auth, provider)
-            .then(async (result) => {
-                const user = result.user;
-                if (user) {
-                 
-                    await setDoc(doc(db, "Users", user.uid), {
-                        name:user.displayName,
-                        email: user.email,
-                        photo: user.photoURL,
-                        role: "user",
-                    });
-                    toast.success("User logged in successfully with Google", {
-                        position: "top-center",
-                    });
-                    onClose();
-                    switchToLogin();
-                }
-            })
-            .catch((error) => {
-                toast.error(`Google login failed: ${error.message}`, { position: "top-center" });
+    const googleLogin = async () => {
+        try {
+            const provider = new GoogleAuthProvider();
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+
+            // Send Google auth data to backend to get JWT
+            const response = await axios.post('http://localhost:5000/auth/google', {
+                uid: user.uid,
+                email: user.email,
+                name: user.displayName,
+                photo: user.photoURL
             });
+
+            // Store JWT token
+            localStorage.setItem('token', response.data.token);
+            
+            toast.success("Logged in successfully with Google");
+            onClose();
+            navigate('/locate');
+        } catch (error) {
+            toast.error(`Google login failed: ${error.message}`);
+        }
     };
 
     const handleSignup = async (e) => {
         e.preventDefault();
 
         if (password !== confirmPassword) {
-            toast.error("Passwords do not match!", { position: "top-center" });
+            toast.error("Passwords do not match!");
             return;
         }
 
         try {
             setLoading(true);
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
 
-            // Send email verification
-            await sendEmailVerification(user);
-
-            // Save user info to Firestore
-            console.log(user)
-            await setDoc(doc(db, "Users", user.uid), {
-                name:name,
-                email: user.email,
-                photo: user.photoURL || "",
-                role: "user",
+            // Send signup request to backend
+            const response = await axios.post('http://localhost:5000/signup', {
+                email,
+                password,
+                name
             });
 
+            // Store JWT token
+            localStorage.setItem('token', response.data.token);
+
             toast.success(
-                "Account created successfully! A verification email has been sent to your email address.",
+                "Account created successfully! Please verify your email.",
                 { position: "top-center" }
             );
+            
             onClose();
-            switchToLogin();
+            navigate('/dashboard');
         } catch (error) {
-            const message = errorMessages[error.code] || errorMessages["default"];
-            toast.error(`Error: ${message}`, { position: "top-center" });
+            const message = error.response?.data?.error || "An unexpected error occurred";
+            toast.error(`Error: ${message}`);
         } finally {
             setLoading(false);
         }
@@ -219,5 +209,12 @@ const SignupModal = ({ isOpen, onClose, navigate, switchToLogin }) => {
         </div>
     );
 };
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
 
 export default SignupModal;
