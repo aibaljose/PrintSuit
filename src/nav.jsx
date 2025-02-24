@@ -6,7 +6,7 @@ import { Home, Upload, Settings, User as UserIcon, LogOut, Menu } from "react-fe
 import { jwtDecode } from "jwt-decode";
 import P from  "./assets/p.png"
 
-const Nav = ({ switchToSignup }) => {
+const Nav = ({ switchToSignup, onUserDetailsUpdate  }) => {
   const [userDetails, setUserDetails] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -21,7 +21,8 @@ const Nav = ({ switchToSignup }) => {
         try {
           const decoded = jwtDecode(token);
           setUserDetails(decoded);
-          console.log(decoded.User)
+          // onUserDetailsUpdate(decoded);
+          console.log(decoded.User);
         } catch (error) {
           console.error("Invalid token:", error);
 
@@ -112,7 +113,7 @@ const Nav = ({ switchToSignup }) => {
               }}>
                 Print
               </span>
-              <span className={`text-[16px] text-[#969696] font-medium cursor-pointer transition-colors duration-300`} onClick={() => navigate("/about")}>
+              <span className={`text-[16px] text-[#969696] font-medium cursor-pointer transition-colors duration-300`} onClick={() => navigate("/orders")}>
                 Orders
               </span>
               <span className={`text-[16px] text-[#969696] font-medium cursor-pointer transition-colors duration-300`} onClick={() => navigate("/support")}>
@@ -187,7 +188,7 @@ const Nav = ({ switchToSignup }) => {
             PrintSuit
           </div>
           <div onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            <Menu className="h-6 w-6 text-gray-600 hover:text-indigo-600 transition-colors duration-200" />
+          {renderProfileIcon()}
           </div>
         </div>
 

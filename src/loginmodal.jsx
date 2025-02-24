@@ -5,6 +5,7 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
+  fetchSignInMethodsForEmail
 } from "firebase/auth";
 import { auth, db } from "./component/firebase";
 import { toast } from "react-toastify";
@@ -106,18 +107,25 @@ const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
   // Forgot Password Function
   const handleForgotPassword = async () => {
     if (!email) {
-      toast.warning("Please enter your email to reset password.", { position: "top-center" });
+      toast.warning("Please enter your email to reset your password.", { position: "top-center" });
       return;
     }
-
+  
     try {
+      // Check if the user exists
+      const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+  
+      if (signInMethods.length === 0) {
+        toast.error("No account found with this email.", { position: "top-center" });
+        return;
+      }
+  
+      // Send password reset email
       await sendPasswordResetEmail(auth, email);
       toast.success("Password reset email sent! Check your inbox.", { position: "top-center" });
+  
     } catch (error) {
       switch (error.code) {
-        case "auth/user-not-found":
-          toast.error("No account found with this email.", { position: "top-center" });
-          break;
         case "auth/invalid-email":
           toast.error("Invalid email format.", { position: "top-center" });
           break;

@@ -10,6 +10,7 @@ import { ToastContainer } from 'react-toastify';
 import paysucess from "./paysucess";
 import Payment from './payment';
 import Profile from "./profile"
+import OrdersPage from './orders'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 const App = () => {
   return (
@@ -28,6 +29,7 @@ const App = () => {
           <Route path='/payment'  Component={Payment} />
           <Route path='/paysucess'  Component={paysucess} />
           <Route path='/profile'  Component={Profile} />
+          <Route path='/orders'  Component={OrdersPage} />
 
 
 

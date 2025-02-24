@@ -102,7 +102,7 @@ const Modal2 = ({ setisopen, hub }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto backdrop-blur-sm ">
 
       <div className="bg-white rounded-2xl max-w-5xl w-full mx-auto shadow-2xl">
         <div className="flex flex-col md:flex-row">

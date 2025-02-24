@@ -417,10 +417,11 @@
 import React, { useState, useEffect } from 'react';
 import { PDFDocument } from 'pdf-lib';
 import { Upload, FileText, ChevronDown, ChevronUp, X, Calendar, Clock } from 'lucide-react';
-
+import { db, collection, getDocs, addDoc,getDoc, doc, updateDoc, deleteDoc } from "./component/firebase";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
 import Nav from "./nav"
+import { jwtDecode } from "jwt-decode";
 
 
 import { useNavigate } from "react-router-dom";
@@ -442,6 +443,7 @@ const FileUploadPrint = () => {
   const handlePayment = async () => {
     try {
       const token = localStorage.getItem("token");
+   
       setAmount(files.reduce((sum, file) => sum + parseFloat(calculatePrice(file)), 0).toFixed(2));
       const { data: order } = await axios.post("http://localhost:5000/create-order",
         { amount },
@@ -464,10 +466,12 @@ const FileUploadPrint = () => {
             {
               headers: { Authorization: `Bearer ${token}` } // Add token to headers
             }
+            
           );
+          const printJobId = await storePrintJob(response);
           alert("Payment Successful!");
           console.log(response)
-          navigate("/paysucess", { state: { hubname: hubname, userId: 123 } });
+         
         },
         prefill: {
           name: "John Doe",
@@ -475,7 +479,7 @@ const FileUploadPrint = () => {
           contact: "9999999999",
         },
         theme: {
-          color: "#3399cc",
+          color: "#0000",
         },
       };
 
@@ -496,7 +500,46 @@ const FileUploadPrint = () => {
   const [files, setFiles] = useState([]);
   const [expandedFile, setExpandedFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const storedToken = localStorage.getItem("token");
+ 
+  const storePrintJob = async (paymentResponse) => {
+    try {
+       const decoded = jwtDecode(storedToken);
+      const userId =decoded.uid;// Get user ID from localStorage
+      
+      const printJobData = {
+        userId: userId || "unknown_user",
+        hubName: hubname || "unknown_hub",
+        createdAt: new Date().toISOString(),
+        paymentId: paymentResponse?.razorpay_payment_id || "unknown_payment",
+        orderId: paymentResponse?.razorpay_order_id || "unknown_order",
+        totalAmount: amount || 0,
+        status: "pending",
+        files: files.map(file => ({
+          fileName: file?.file?.name || "unknown_file",
+          pageCount: file?.settings?.pageCount || 1,
+          settings: {
+            color: file?.settings?.color || "black",
+            orientation: file?.settings?.orientation || "portrait",
+            copies: file?.settings?.copies || 1,
+            doubleSided: file?.settings?.doubleSided ?? false, // Use nullish coalescing (??) to avoid `undefined`
+            pageRange: file?.settings?.pageRange || "all",
+            customRange: file?.settings?.customRange || "",
+            schedule: file?.settings?.schedule || "immediate"
+          },
+          price: calculatePrice(file) || 0
+        }))
+      };
 
+      const docRef = await addDoc(collection(db, 'printJobs'), printJobData);
+      console.log("Print job stored with ID: ", docRef.id);
+      navigate("/paysucess", { state: { jobid: docRef.id } });
+      return docRef.id;
+    } catch (error) {
+      console.error("Error storing print job:", error);
+      throw error;
+    }
+  };
   // Price configuration
   const priceConfig = {
     bwSingle: 2,
@@ -672,7 +715,7 @@ const FileUploadPrint = () => {
                   className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                   disabled={loading}
                 >
-                  {loading ? 'Processing...' : 'Select Files'}
+                  {loading ? 'Processing...' : ''}
                 </button>
               </label>
             </div>
