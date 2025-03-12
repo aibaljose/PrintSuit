@@ -33,4 +33,12 @@ export default defineConfig({
       type: 'module',
     },
   })],
+  optimizeDeps: {
+    include: ['pdfjs-dist']
+  },
+  build: {
+    commonjsOptions: {
+      include: [/pdfjs-dist/]
+    }
+  }
 })

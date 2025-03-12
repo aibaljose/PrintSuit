@@ -4,7 +4,8 @@ import { doc, getDoc } from "firebase/firestore";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, Upload, Settings, User as UserIcon, LogOut, Menu } from "react-feather";
 import { jwtDecode } from "jwt-decode";
-import P from  "./assets/p.png"
+import P from  "./assets/p.png";
+import { toast } from "react-toastify";
 
 const Nav = ({ switchToSignup, onUserDetailsUpdate  }) => {
   const [userDetails, setUserDetails] = useState(null);
@@ -17,6 +18,11 @@ const Nav = ({ switchToSignup, onUserDetailsUpdate  }) => {
     const checkUser = async () => {
       const token = localStorage.getItem("token");
       console.log(token);
+      if (!token) {
+        console.log("No token found. Redirecting...");
+        navigate("/");
+      }
+        
       if (token) {
         try {
           const decoded = jwtDecode(token);
@@ -27,6 +33,7 @@ const Nav = ({ switchToSignup, onUserDetailsUpdate  }) => {
           console.error("Invalid token:", error);
 
           localStorage.removeItem("token");
+          navigate("/");
         }
       }
 
@@ -108,12 +115,20 @@ const Nav = ({ switchToSignup, onUserDetailsUpdate  }) => {
                 if (userDetails) {
                   navigate("/locate");
                 } else {
-                  alert("Please login to access this page");
+                  toast.warning(`Please login to access this page`, { position: "top-center" });
+                  // alert("Please login to access this page");
                 }
               }}>
                 Print
               </span>
-              <span className={`text-[16px] text-[#969696] font-medium cursor-pointer transition-colors duration-300`} onClick={() => navigate("/orders")}>
+              <span className={`text-[16px] text-[#969696] font-medium cursor-pointer transition-colors duration-300`}onClick={() => {
+                if (userDetails) {
+                  navigate("/orders");
+                } else {
+                  toast.warning(`Please login to access this page`, { position: "top-center" });
+                }
+              }}>
+                
                 Orders
               </span>
               <span className={`text-[16px] text-[#969696] font-medium cursor-pointer transition-colors duration-300`} onClick={() => navigate("/support")}>
@@ -142,7 +157,9 @@ const Nav = ({ switchToSignup, onUserDetailsUpdate  }) => {
                   className="cursor-pointer focus:outline-none"
                 >
                   {renderProfileIcon()}
+                 
                 </div>
+                
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-3 w-56 bg-white border border-gray-100 rounded-xl shadow-2xl overflow-hidden">
                     <div className="py-2">
@@ -163,6 +180,7 @@ const Nav = ({ switchToSignup, onUserDetailsUpdate  }) => {
                         Sign Out
                       </div>
                     </div>
+              
                   </div>
                 )}
               </div>

@@ -11,17 +11,20 @@ import paysucess from "./paysucess";
 import Payment from './payment';
 import Profile from "./profile"
 import OrdersPage from './orders'
+import Nav from "./nav"
+import ConnectionConstellation from "./test2"
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 const App = () => {
   return (
 <>
 <Router>
       <div className="app h-screen w-full ">
-      
+     
         <Routes >
          
           <Route path="/login" Component={Login} />
           <Route path="/signup" Component={Signup} />
+          
           <Route path="/locate" Component={PrinterLocator} />
           <Route path="/upload" Component={FileUploadPage} />
           <Route path='/' exact Component={Home} />
@@ -30,6 +33,7 @@ const App = () => {
           <Route path='/paysucess'  Component={paysucess} />
           <Route path='/profile'  Component={Profile} />
           <Route path='/orders'  Component={OrdersPage} />
+          <Route path='/test'  Component={ConnectionConstellation} />
 
 
 

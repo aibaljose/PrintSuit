@@ -1,0 +1,47 @@
+/* ConnectionConstellation.css */
+.constellation-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #121212; /* Dark background */
+    color: white;
+    padding: 20px;
+    font-family: sans-serif;
+  }
+  
+  .interest-selection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .interests-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .interest-button {
+    background-color: #333;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .interest-button:hover {
+    background-color: #555;
+  }
+  
+  .interest-button.selected {
+    background-color: #007bff; /* Highlight selected */
+  }
+  
+  .interest-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }

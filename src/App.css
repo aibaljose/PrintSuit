@@ -383,3 +383,9 @@ input:-webkit-autofill {
 .mmmm{
 box-shadow: 0px 16px 12px 0px rgba(0, 0, 0, 0.03137254901960784);
 }
+
+/* Add to your CSS */
+.pdf-preview canvas {
+  background: white;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}

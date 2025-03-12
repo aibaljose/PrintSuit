@@ -54,6 +54,7 @@ const PrinterLocator = () => {
     const value = e.target.value;
     setLocationInput(value);
     
+    
   
 
     if (!value.trim()) {
@@ -378,3 +379,7 @@ const PrinterLocator = () => {
 };
 
 export default PrinterLocator;
+
+
+
+
