@@ -33,9 +33,26 @@ const PDFPreview = ({ file, settings }) => {
     });
   }, [settings]);
 
+  // Add paper size scaling calculation
+  const calculateViewportScale = (page, paperSize) => {
+    const originalWidth = page.getViewport({ scale: 1.0 }).width;
+    const originalHeight = page.getViewport({ scale: 1.0 }).height;
+    
+    // Convert mm to points (1 mm ≈ 2.83465 points)
+    const targetWidth = paperSize.width * 2.83465;
+    const targetHeight = paperSize.height * 2.83465;
+    
+    // Calculate scale to fit paper size while maintaining aspect ratio
+    const widthScale = targetWidth / originalWidth;
+    const heightScale = targetHeight / originalHeight;
+    
+    // Use the smaller scale to ensure content fits within paper
+    return Math.min(widthScale, heightScale) * 2.0; // Multiply by 2.0 for better quality
+  };
+
   // Convert PDF pages to images
   useEffect(() => {
-    if (!file) return;
+    if (!file || !settings.paperSize) return;
 
     const convertPDFToImages = async () => {
       try {
@@ -47,33 +64,28 @@ const PDFPreview = ({ file, settings }) => {
         const images = [];
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
           const page = await pdf.getPage(pageNum);
+          const margin = 50;
           
-          // Calculate viewport scale based on paper size and margins
-          const originalWidth = page.getViewport({ scale: 1.0 }).width;
-          const originalHeight = page.getViewport({ scale: 1.0 }).height;
-          const margin = 50; // 50px margins
-          const scale = 2.0; // Base scale for better quality
+          // Calculate scale based on paper size
+          const scale = calculateViewportScale(page, settings.paperSize);
+          const viewport = page.getViewport({ scale });
 
-          // Create canvas with margins
+          // Create canvas with proper paper size ratio
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d', { alpha: false });
           
-          // Set canvas size including margins
-          canvas.width = (originalWidth * scale) + (margin * 2);
-          canvas.height = (originalHeight * scale) + (margin * 2);
+          canvas.width = (viewport.width) + (margin * 2);
+          canvas.height = (viewport.height) + (margin * 2);
 
-          // Fill background
+          // Fill white background
           ctx.fillStyle = 'white';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-          // Create viewport with proper scale
-          const viewport = page.getViewport({ scale });
-
-          // Render PDF page to canvas with margins
+          // Render with paper size constraints
           await page.render({
             canvasContext: ctx,
             viewport,
-            transform: [1, 0, 0, 1, margin, margin], // Apply margins
+            transform: [1, 0, 0, 1, margin, margin],
             background: 'white'
           }).promise;
 
@@ -103,7 +115,7 @@ const PDFPreview = ({ file, settings }) => {
     };
 
     convertPDFToImages();
-  }, [file, settings.color]);
+  }, [file, settings.color, settings.paperSize]);
 
   // Handle page navigation
   const nextPage = () => setCurrentPage(prev => Math.min(prev + 1, numPages));
@@ -127,9 +139,17 @@ const PDFPreview = ({ file, settings }) => {
           </div>
         ) : (
           <div className="h-full flex flex-col items-center justify-center">
-            <div className={`relative w-full h-full flex items-center justify-center ${
-              settings.orientation.toLowerCase() === 'landscape' ? 'rotate-90' : ''
-            }`} style={{ padding: '20px' }}>
+            <div 
+              className={`relative w-full h-full flex items-center justify-center ${
+                settings.orientation.toLowerCase() === 'landscape' ? 'rotate-90' : ''
+              }`} 
+              style={{ 
+                padding: '20px',
+                aspectRatio: settings.orientation.toLowerCase() === 'landscape' 
+                  ? `${settings.paperSize.height}/${settings.paperSize.width}`
+                  : `${settings.paperSize.width}/${settings.paperSize.height}`
+              }}
+            >
               {pageImages[currentPage - 1] && (
                 <img
                   src={pageImages[currentPage - 1]}
@@ -188,6 +208,9 @@ const PDFPreview = ({ file, settings }) => {
           </div>
           <div>
             <strong>Copies:</strong> {settings.copies}
+          </div>
+          <div>
+            <strong>Paper Size:</strong> {settings.paperSize.width} × {settings.paperSize.height} mm
           </div>
         </div>
       </div>

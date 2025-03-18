@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import {
   BarChart2, Printer, AlertCircle, Users, Activity,
   Settings, RefreshCw, Plus, X, MapPin, Power,
-  Clock, Trash2,Menu
+  Clock, Trash2, Menu
 } from 'lucide-react';
-import { db, collection, getDocs, addDoc,getDoc, doc, updateDoc, deleteDoc } from "./component/firebase";
-import {query,where,setDoc } from  "firebase/firestore";
+import { db, collection, getDocs, addDoc, getDoc, doc, updateDoc, deleteDoc } from "./component/firebase";
+import { query, where, setDoc } from "firebase/firestore";
 import { FirebaseError } from 'firebase/app';
+import UserManagement from './component/UserManagement';
+import AdminLoginModal from './component/AdminLoginModal';
+import PrintJobMonitoring from './component/PrintJobMonitoring';
 
 const PrinterHubModal = ({ isOpen, onClose, onSubmit, formData, setFormData, loading, error, editingHub }) => {
   if (!isOpen) return null;
@@ -33,7 +36,7 @@ const PrinterHubModal = ({ isOpen, onClose, onSubmit, formData, setFormData, loa
         )}
 
         <div className="space-y-4">
-        <input
+          <input
             type="text"
             placeholder="Hub ID"
             value={formData.id}
@@ -97,7 +100,7 @@ const PrinterHubModal = ({ isOpen, onClose, onSubmit, formData, setFormData, loa
               value={formData.location[1]}
               onChange={(e) => setFormData({
                 ...formData,
-                location: [formData.location[0], parseFloat(e.target.value) ]
+                location: [formData.location[0], parseFloat(e.target.value)]
               })}
               className="w-full p-2 border rounded"
             />
@@ -166,7 +169,7 @@ const ManageHubModal = ({ isOpen, onClose, hub, onStatusUpdate, onDelete, loadin
           <div className="bg-gray-50 p-4 rounded-lg">
             <h3 className="text-lg font-semibold mb-4">Hub Information</h3>
             <div className="space-y-2">
-            <p><span className="font-medium">ID:</span> {hub.id}</p>
+              <p><span className="font-medium">ID:</span> {hub.id}</p>
               <p><span className="font-medium">Location:</span> {hub.address}</p>
               <p><span className="font-medium">Type:</span> {hub.type}</p>
               <p><span className="font-medium">Paper Size:</span> {hub.paperSize}</p>
@@ -275,25 +278,28 @@ const PrinterHubCard = ({ hub, onEdit, onManage }) => (
 
 const PrintSuitAdminDashboard = () => {
 
-    const [activePage, setActivePage] = useState('overview');
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isManageModalOpen, setIsManageModalOpen] = useState(false);
-    const [printerHubs, setPrinterHubs] = useState([]);
-    const [editingHub, setEditingHub] = useState(null);
-    const [managingHub, setManagingHub] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+  const [activePage, setActivePage] = useState('overview');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+  const [printerHubs, setPrinterHubs] = useState([]);
+  const [editingHub, setEditingHub] = useState(null);
+  const [managingHub, setManagingHub] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [adminUser, setAdminUser] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(true);
 
   const [formData, setFormData] = useState({
-    id:"",
+    id: "",
     name: '',
     address: '',
     type: 'Color',
     paperSize: 'A4',
     speed: '30 ppm',
     location: [0, 0],
-    rating:"",
+    rating: "",
     status: 'Active'
   });
 
@@ -322,9 +328,9 @@ const PrintSuitAdminDashboard = () => {
       const printersData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-       
+
       }));
-    
+
       setPrinterHubs(printersData);
     } catch (err) {
       setError("Failed to fetch printer hubs");
@@ -338,14 +344,14 @@ const PrintSuitAdminDashboard = () => {
     if (hub) {
       setEditingHub(hub);
       setFormData({
-        id:hub.id || "",
+        id: hub.id || "",
         name: hub.name || '',
         address: hub.address || '',
         type: hub.type || 'Color',
         paperSize: hub.paperSize || 'A4',
         speed: hub.speed || '30 ppm',
         location: hub.location || [0, 0],
-        rating:hub.rating || "5",
+        rating: hub.rating || "5",
         status: hub.status || 'Active'
       });
     } else {
@@ -358,7 +364,7 @@ const PrintSuitAdminDashboard = () => {
         paperSize: 'A4',
         speed: '30 ppm',
         location: [0, 0],
-        rating:"5",
+        rating: "5",
         status: 'Active'
       });
     }
@@ -388,35 +394,35 @@ const PrintSuitAdminDashboard = () => {
   };
 
 
-const handleDeleteHubByName = async (printerName) => {
-  if (!window.confirm(`Are you sure you want to delete the printer hub: "${printerName}"?`)) return;
+  const handleDeleteHubByName = async (printerName) => {
+    if (!window.confirm(`Are you sure you want to delete the printer hub: "${printerName}"?`)) return;
 
-  setLoading(true);
-  try {
+    setLoading(true);
+    try {
       // Step 1: Query Firestore for the document with the given name
       const q = query(collection(db, "printerhubs"), where("name", "==", printerName));
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-          setError("Printer hub not found");
-          setLoading(false);
-          return;
+        setError("Printer hub not found");
+        setLoading(false);
+        return;
       }
 
       // Step 2: Get the document ID and delete it
       querySnapshot.forEach(async (docSnapshot) => {
-          await deleteDoc(doc(db, "printerhubs", docSnapshot.id));
+        await deleteDoc(doc(db, "printerhubs", docSnapshot.id));
       });
 
       await fetchPrinterHubs();
       setIsManageModalOpen(false);
-  } catch (err) {
+    } catch (err) {
       setError("Failed to delete printer hub");
       console.error("Error deleting printer hub:", err);
-  } finally {
+    } finally {
       setLoading(false);
-  }
-};
+    }
+  };
 
   const handleStatusUpdate = async (hubid, newStatus) => {
     if (!hubid) {
@@ -424,21 +430,21 @@ const handleDeleteHubByName = async (printerName) => {
       setError("Invalid printer hub data");
       return;
     }
-  
+
     setLoading(true);
     try {
       const hubRef = doc(db, "printerhubs", hubid); // Use the actual Firestore document ID
       const hubSnap = await getDoc(hubRef);
-  
+
       if (!hubSnap.exists()) {
         throw new Error(`No document found for ID: ${hubid}`);
       }
-  
+
       await updateDoc(hubRef, {
         status: newStatus,
         updatedAt: new Date().toISOString(), // Track update time
       });
-  
+
       await fetchPrinterHubs(); // Refresh the list
       setIsManageModalOpen(false);
     } catch (err) {
@@ -448,42 +454,42 @@ const handleDeleteHubByName = async (printerName) => {
       setLoading(false);
     }
   };
-  
+
 
   const handleSubmit = async () => {
     if (!formData.id?.trim() || !formData.name?.trim() || !formData.address?.trim()) {
       setError("ID, name, and address are required");
       return;
     }
-  
+
     setLoading(true);
     setError(null);
-  
+
     try {
       // Ensure location is an array
       const locationArray = Array.isArray(formData.location) ? formData.location : [0, 0];
-  
+
       const dataToSave = {
         ...formData,
         location: locationArray,
         updatedAt: new Date().toISOString()
       };
-  
+
       const hubRef = doc(db, "printerhubs", formData.id.trim());
-  
+
       if (editingHub) {
         // **📝 Update existing hub**
         await updateDoc(hubRef, dataToSave);
       } else {
         // **🔍 Check if a hub with the same ID already exists**
         const existingHub = await getDoc(hubRef);
-  
+
         if (existingHub.exists()) {
           setError("A printer hub with this ID already exists.");
           setLoading(false);
           return;
         }
-  
+
         // **🆕 Add new hub with the given ID**
         await setDoc(hubRef, {
           ...dataToSave,
@@ -491,7 +497,7 @@ const handleDeleteHubByName = async (printerName) => {
           rating: 5.0
         });
       }
-  
+
       await fetchPrinterHubs();
       setIsModalOpen(false);
     } catch (err) {
@@ -501,6 +507,22 @@ const handleDeleteHubByName = async (printerName) => {
       setLoading(false);
     }
   };
+
+  const handleLogin = (user) => {
+    setAdminUser(user);
+    setIsAuthenticated(true);
+    setShowLoginModal(false);
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <AdminLoginModal
+        isOpen={showLoginModal}
+        onClose={() => window.location.href = '/'}
+        onLogin={handleLogin}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 lg:flex">
@@ -521,7 +543,7 @@ const handleDeleteHubByName = async (printerName) => {
         ${isSidebarOpen ? 'block' : 'hidden lg:block'}
       `}>
         {/* Overlay */}
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 lg:hidden "
           onClick={() => setIsSidebarOpen(false)}
         />
@@ -535,6 +557,7 @@ const handleDeleteHubByName = async (printerName) => {
             {[
               { name: 'Overview', icon: <BarChart2 />, page: 'overview' },
               { name: 'Printer Management', icon: <Printer />, page: 'printers' },
+              { name: 'Print Jobs', icon: <Activity />, page: 'jobs' },
               { name: 'User Management', icon: <Users />, page: 'users' },
               { name: 'Error Logs', icon: <AlertCircle />, page: 'errors' },
               { name: 'Settings', icon: <Settings />, page: 'settings' }
@@ -558,13 +581,48 @@ const handleDeleteHubByName = async (printerName) => {
 
       {/* Main Content */}
       <div className="lg:flex w-[100%]">
+
         {/* <div className="hidden lg:block w-64" /> Sidebar spacer */}
         <div className="flex-1 p-4 sm:p-6 lg:p-8 ">
+         
           {activePage === 'overview' && (
             <>
+             <div className="w-full mx-auto bg-blue-500 text-white p-8 rounded-lg flex justify-between items-center mb-8">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <h1 className="text-4xl font-bold">Welcome back Aibal <span role="img" aria-label="waving hand">👋</span></h1>
+                <p className="text-lg">
+                  This dashboard is being updated. Expect improvements<br />
+                  and possible bugs. Thanks for your patience!
+                </p>
+              </div>
+
+              <div className="flex space-x-4">
+                <button className="bg-white text-black px-6 py-3 rounded-full font-medium hover:bg-gray-100 transition-colors">
+                  Start Learning
+                </button>
+                <button className="bg-transparent border border-white px-6 py-3 rounded-full font-medium hover:bg-blue-600 transition-colors">
+                  Join Learning
+                </button>
+                <button className="bg-transparent border border-white px-6 py-3 rounded-full font-medium hover:bg-blue-600 transition-colors">
+                  Report Issues
+                </button>
+              </div>
+            </div>
+
+            <div className="hidden md:block">
+              <img
+                src="/api/placeholder/240/320"
+                alt="Character with glasses holding a tablet"
+                className="h-48"
+              />
+            </div>
+          </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                
                 {printerStats.map((stat) => (
                   <div key={stat.name} className="bg-white p-4 sm:p-6 rounded-lg shadow-md flex items-center">
+                    
                     {stat.icon}
                     <div className="ml-4">
                       <p className="text-gray-500 text-sm">{stat.name}</p>
@@ -634,6 +692,19 @@ const handleDeleteHubByName = async (printerName) => {
                 ))}
               </div>
             </div>
+          )}
+
+          {activePage === 'users' && (
+            <div className="container mx-auto px-4">
+              <h2 className="text-2xl font-bold mb-6 flex items-center">
+                <Users className="mr-3" /> User Management
+              </h2>
+              <UserManagement />
+            </div>
+          )}
+
+          {activePage === 'jobs' && (
+            <PrintJobMonitoring />
           )}
         </div>
       </div>
