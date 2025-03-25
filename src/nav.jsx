@@ -82,14 +82,21 @@ const Nav = ({ switchToSignup, onUserDetailsUpdate  }) => {
   };
 
   const renderProfileIcon = () => {
-    return userDetails?.photo ? (
-      <img
-        src={userDetails.photo}
-        alt="Profile"
-        className="rounded-full h-12 w-12 object-cover border-2 border-indigo-200 hover:border-indigo-400 transition-colors"
-      />
-    ) : (
-      <UserIcon className="h-12 w-12 text-gray-600 p-1 rounded-full border-2 border-gray-200 hover:border-indigo-400 transition-colors" />
+    return (
+      <div className="flex items-center space-x-2">
+        <span className="px-3 py-2 text-gray-700 font-small  border-gray-200 hover:border-indigo-400 transition-colors">
+          {userDetails?.name || 'User'}
+          {console.log(userDetails)}
+        </span>
+        {userDetails?.photo ? (
+          <img
+            src={userDetails.photo}
+            alt="Profile"
+            className="rounded-full h-10 w-10 object-cover border-2 border-indigo-200 hover:border-indigo-400 transition-colors"
+          />
+        ) : null}
+        
+      </div>
     );
   };
 

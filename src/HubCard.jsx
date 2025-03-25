@@ -10,13 +10,23 @@ const HubCard = ({ hub }) => {
     <div className="w-full max-w-sm  mx-auto">
       {isOpen && <Modal2 setisopen={setIsOpen} hub={hub} />}
       
-      <div className=" group relative bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+      <div className="group relative bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100">
         {/* Status Badge */}
         <div className="absolute top-4 left-4 z-10">
-          <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full">
-            <CircleDot className="w-4 h-4 text-emerald-500"  />
-            <span className="text-sm font-medium text-emerald-700">{hub.status}</span>
-          </div>
+          {hub.status === 'Active' ? (
+            <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full border border-emerald-100">
+              <span className="relative flex h-4 w-4">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500"></span>
+              </span>
+              <span className="text-sm font-medium text-emerald-700">Active</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full border border-gray-100">
+              <CircleDot className="w-4 h-4 text-gray-400" />
+              <span className="text-sm font-medium text-gray-600">{hub.status}</span>
+            </div>
+          )}
         </div>
 
         {/* Image Container */}
@@ -59,7 +69,8 @@ const HubCard = ({ hub }) => {
             onClick={() => setIsOpen(true)}
             className="w-full bg-black text-white mt-2 px-4 py-3 rounded-xl font-medium 
                      flex items-center justify-center gap-2 group/button
-                     hover:bg-gray-800 active:bg-gray-900 transition-colors duration-200"
+                     hover:bg-gray-800 active:bg-gray-900 transition-all duration-200
+                     transform hover:scale-[1.02] active:scale-[0.98]"
           >
             <span>View </span>
             <ChevronRight className="w-4 h-4 transition-transform duration-200 group-hover/button:translate-x-0.5" />

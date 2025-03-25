@@ -10,6 +10,7 @@ import {
 import { auth, db } from "./component/firebase";
 import { toast } from "react-toastify";
 import axios from 'axios';
+import { collection, doc, getDoc } from "firebase/firestore";
 
 const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
   const [email, setEmail] = useState("");
@@ -26,23 +27,32 @@ const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
       const user = result.user;
 
       if (user.emailVerified) {
-        // Get JWT token from backend
+        // Check if user exists and is active
+        const userDocRef = doc(db, "Users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        
+        if (userDocSnap.exists() && userDocSnap.data().isActive === false) {
+          toast.error("Your account has been disabled. Please contact support.", { position: "top-center" });
+          return;
+        }
+
+        // Continue with existing login logic
         const response = await axios.post('http://localhost:5000/auth/google', {
           uid: user.uid,
           email: user.email,
           name: user.displayName,
-          photo: user.photoURL
+          photo: user.photoURL,
+          isGoogleLogin: true // Flag to indicate this is Google login
         });
 
         // Store JWT token
         localStorage.setItem('token', response.data.token);
-       
 
         toast.success("Successfully logged in with Google", { position: "top-center" });
         navigate("/locate");
         onClose();
       } else {
-        toast.warning("Please verify your Gmail before proceeding.", { position: "top-center" });
+        toast.warning("Please verify your email before proceeding.", { position: "top-center" });
       }
     } catch (error) {
       toast.error(`Google login failed: ${error.message}`, { position: "top-center" });
@@ -55,20 +65,29 @@ const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
     setLoading(true);
 
     try {
-      // First authenticate with Firebase
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
       if (user.emailVerified) {
-        // Get JWT token from backend
+        // Get user document and check active status
+        const userDocRef = doc(db, "Users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        const userData = userDocSnap.data();
+
+        if (userData?.isActive === false) {
+          toast.error("Your account has been disabled. Please contact support.", { position: "top-center" });
+          return;
+        }
+
+        // Continue with existing login logic
         const response = await axios.post('http://localhost:5000/login', {
           email: user.email,
           uid: user.uid,
+          name: userData?.name || user.displayName, // Use optional chaining
         });
 
-        // Store JWT token
         localStorage.setItem('token', response.data.token);
-        console.log( response.data.token);
+        console.log(response.data.token);
 
         toast.success("Successfully logged in", { position: "top-center" });
         navigate("/locate");
@@ -97,6 +116,9 @@ const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
         break;
       case "auth/too-many-requests":
         toast.error("Too many login attempts. Please try again later.", { position: "top-center" });
+        break;
+      case "auth/user-disabled":
+        toast.error("This account has been disabled.", { position: "top-center" });
         break;
       default:
         toast.error(`Login failed: ${error.message}`, { position: "top-center" });

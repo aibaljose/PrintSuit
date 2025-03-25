@@ -1,165 +1,154 @@
 import React, { useState } from 'react';
-import { ChevronRight, Heart, Upload, Star, MapPin, Printer } from 'lucide-react';
-import printer from "./assets/color.png";
+import { ChevronDown, Heart, Upload, Star, MapPin, Printer } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import { X } from 'lucide-react';
+import hun from "./assets/hun.png";
 const Modal2 = ({ setisopen, hub }) => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("description");
   const [isLiked, setIsLiked] = useState(false);
 
-  const TabButton = ({ tab }) => (
-    <button
-      className={`group flex-1 py-4 relative transition-colors duration-200
-        ${activeTab === tab ? 'text-black' : 'text-gray-400 hover:text-gray-600'}`}
-      onClick={() => setActiveTab(tab)}
-    >
-      <span className="text-sm font-medium capitalize">{tab}</span>
-      {activeTab === tab && (
-        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black rounded-full" />
-      )}
-    </button>
-  );
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case "description":
-        return (
-          <div className="space-y-6">
-            <p className="text-gray-600">
-              {hub.description || "No description available."}
-            </p>
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { label: "Color", value: "Blue" },
-                { label: "Size", value: "Medium" },
-                { label: "Quantity", value: "4" }
-              ].map(({ label, value }) => (
-                <div key={label} className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">{label}</p>
-                  <p className="font-medium">{value}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      case "reviews":
-        return (
-          <div className="space-y-4">
-
-            {[
-              { rating: 5, text: "Great quality prints!", user: "Alex M." },
-              { rating: 4, text: "Fast and efficient service.", user: "Sarah K." },
-              { rating: 3, text: "Could improve on availability.", user: "John D." }
-            ].map((review, index) => (
-              <div key={index} className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="flex gap-0.5">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        size={16}
-                        className={i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-200"}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-sm font-medium text-gray-600">{review.user}</span>
-                </div>
-                <p className="text-gray-600">{review.text}</p>
-              </div>
-            ))}
-          </div>
-        );
-      case "details":
-        return (
-          <div className="space-y-4">
-            <div className="bg-gray-50 p-4 rounded-lg flex items-start gap-3">
-              <MapPin className="text-gray-400 mt-1" size={20} />
-              <div>
-                <p className="font-medium mb-1">Location</p>
-                <p className="text-gray-600">{hub.address}</p>
-              </div>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg flex items-start gap-3">
-              <Printer className="text-gray-400 mt-1" size={20} />
-              <div>
-                <p className="font-medium mb-1">Printer Type</p>
-                <p className="text-gray-600">Color Printer</p>
-              </div>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg flex items-start gap-3">
-              <Star className="text-gray-400 mt-1" size={20} />
-              <div>
-                <p className="font-medium mb-1">Rating</p>
-                <p className="text-gray-600">{hub.rating} out of 5</p>
-              </div>
-            </div>
-          </div>
-        );
-      default:
-        return null;
+  const sections = [
+    {
+      title: "Print Details",
+      icon: Printer,
+      content: [
+        { label: "Quality", value: "High Resolution", badge: "PRO" },
+        { label: "Processing", value: "15-20 mins", badge: "FAST" },
+        { label: "Paper Size", value: "A3/A4/A5" },
+      ]
+    },
+    {
+      title: "Location & Hours",
+      content: [
+        { label: "Address", value: hub.address },
+        { label: "Working Hours", value: "9AM - 8PM" },
+        { label: "Rating", value: `${hub.rating}/5` },
+      ]
     }
-  };
+  ];
+
+  const [openSection, setOpenSection] = useState("Print Details");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto backdrop-blur-sm ">
-
-      <div className="bg-white rounded-2xl max-w-5xl w-full mx-auto shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-black/80 to-black/40 backdrop-blur-lg p-4">
+      <div className="bg-white/90 backdrop-blur-xl rounded-2xl max-w-5xl w-full mx-auto shadow-2xl border border-white/20 transition-all duration-300 ease-out hover:shadow-indigo-500/10">
         <div className="flex flex-col md:flex-row">
-          <div className="w-full md:w-1/2 p-8">
-            
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-            
-              <MapPin size={16} />
-              {hub.address}
+          <div className="w-full md:w-3/5 p-8">
+            {/* Header */}
+            <div className="flex justify-between items-start mb-8">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-1 bg-indigo-50 text-indigo-600 text-xs font-medium rounded-full">
+                    Available Now
+                  </span>
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900 tracking-tight">{hub.name}</h2>
+                <div className="flex items-center gap-2 text-gray-500">
+                  <MapPin size={14} className="text-indigo-500" />
+                  <span className="text-sm font-medium">{hub.address}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setisopen(false)}
+                className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <X size={20} />
+              </button>
             </div>
-            <h1 className="text-3xl font-semibold mb-8">{hub.name}</h1>
 
-            <div className="flex border-b mb-6">
-              {["description", "reviews", "details"].map((tab) => (
-                <TabButton key={tab} tab={tab} />
+            {/* Collapsible Sections */}
+            <div className="space-y-3 mb-8">
+              {sections.map((section) => (
+                <div 
+                  key={section.title}
+                  className="border border-gray-100 rounded-xl overflow-hidden hover:border-indigo-100 transition-all duration-200"
+                >
+                  <button
+                    onClick={() => setOpenSection(section.title)}
+                    className="w-full px-6 py-4 flex items-center justify-between text-left bg-gray-50/50 hover:bg-gray-50/80 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      {section.icon && <section.icon size={18} className="text-indigo-500" />}
+                      <span className="font-semibold text-gray-900">{section.title}</span>
+                    </div>
+                    <ChevronDown
+                      size={16}
+                      className={`transform transition-transform duration-200 text-gray-400
+                        ${openSection === section.title ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+                  {openSection === section.title && (
+                    <div className="px-6 py-4 space-y-3 animate-fadeIn">
+                      {section.content.map((item) => (
+                        <div key={item.label} className="flex items-center justify-between text-sm">
+                          <span className="text-gray-500">{item.label}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-gray-900">{item.value}</span>
+                            {item.badge && (
+                              <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-xs font-medium rounded-full">
+                                {item.badge}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
 
-            <div className="mb-8">
-              {renderContent()}
-            </div>
-
-            <div className="flex items-center gap-4">
+            {/* Price and Actions */}
+            <div className="flex items-center gap-4 pt-6 border-t border-gray-100">
               <div className="flex-1">
-                <p className="text-sm text-gray-500 mb-1">Price per page</p>
-                <p className="text-2xl font-semibold">₹1 <span className="text-sm font-normal text-gray-500">/ color</span></p>
+                <p className="text-sm font-medium text-gray-500">Price per page</p>
+                <div className="flex items-baseline gap-1">
+                  <p className="text-3xl font-bold text-gray-900">₹1</p>
+                  <span className="text-sm font-medium text-gray-500">/color</span>
+                </div>
               </div>
               <button
                 onClick={() => setIsLiked(!isLiked)}
-                className={`p-3 rounded-full transition-colors duration-200 ${isLiked ? 'bg-pink-50' : 'bg-gray-100 hover:bg-gray-200'
-                  }`}
+                className={`p-3 rounded-full transition-all duration-200 ${
+                  isLiked 
+                    ? 'bg-pink-50 hover:bg-pink-100' 
+                    : 'bg-gray-50 hover:bg-gray-100'
+                }`}
               >
                 <Heart
                   size={20}
-                  className={`transition-colors duration-200 ${isLiked ? 'fill-pink-500 text-pink-500' : 'text-gray-600'
-                    }`}
+                  className={`transition-colors duration-200 ${
+                    isLiked ? 'fill-pink-500 text-pink-500' : 'text-gray-400'
+                  }`}
                 />
               </button>
-              <button onClick={() => navigate("/upload", { state: { hubname: hub.name } })} className="bg-black text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-800 transition-colors duration-200">
-                Upload file
-                <Upload size={18} />
+              <button 
+                onClick={() => navigate("/upload", { state: { hubname: hub.name, hubid: hub.id } })}
+                className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-medium flex items-center gap-2 
+                  hover:bg-indigo-500 transition-all duration-200 active:scale-95 shadow-lg shadow-indigo-500/20"
+              >
+                Print Now
+                <Upload size={18} className="animate-bounce" />
               </button>
             </div>
           </div>
 
-          <div className="hidden md:block w-1/2 bg-gray-100 rounded-r-2xl overflow-hidden relative">
-          <button
+          {/* Image Section */}
+          <div className="hidden md:block w-2/5 bg-gray-50 rounded-r-2xl overflow-hidden relative">
+            <button
               onClick={() => setisopen(false)}
-              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 transition-colors"
+              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-white/50 transition-colors z-10"
             >
               <X size={20} />
             </button>
-            <img
-              alt="printer"
-              className="w-full h-full object-cover"
-              src={printer}
-            />
+            <div className="w-full h-full relative group">
+              <img
+                src={hun}
+                alt="Printer Hub"
+                className="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+            </div>
           </div>
         </div>
       </div>

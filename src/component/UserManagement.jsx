@@ -23,6 +23,7 @@ const UserManagement = () => {
         email: doc.data().email || '',
         photo: doc.data().photo || '',
         role: doc.data().role || 'user',
+        isActive: doc.data().isActive ?? true,
         createdAt: doc.data().createdAt || new Date().toISOString(),
       }));
       setUsers(usersData);
@@ -34,9 +35,15 @@ const UserManagement = () => {
     }
   };
 
-  const toggleUserStatus = async (userId, currentStatus) => {
+  const toggleUserStatus = async (userId, currentStatus, userRole) => {
+    // Prevent disabling admin users
+    if (userRole === 'admin') {
+      setError("Admin users cannot be disabled");
+      return;
+    }
+
     try {
-      const userRef = doc(db, "users", userId);
+      const userRef = doc(db, "Users", userId);
       await updateDoc(userRef, {
         isActive: !currentStatus,
         updatedAt: new Date().toISOString()
@@ -86,6 +93,9 @@ const UserManagement = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Created At
               </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -120,6 +130,22 @@ const UserManagement = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {new Date(user.createdAt).toLocaleDateString()}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <button
+                    onClick={() => toggleUserStatus(user.id, user.isActive, user.role)}
+                    disabled={user.role === 'admin'}
+                    className={`flex items-center px-3 py-1 rounded-full text-xs
+                      ${user.role === 'admin' 
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                        : user.isActive 
+                          ? 'bg-red-100 text-red-800 hover:bg-red-200' 
+                          : 'bg-green-100 text-green-800 hover:bg-green-200'
+                      }`}
+                  >
+                    <Power size={12} className="mr-1" />
+                    {user.role === 'admin' ? 'Admin' : user.isActive ? 'Disable' : 'Enable'}
+                  </button>
                 </td>
               </tr>
             ))}

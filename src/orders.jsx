@@ -75,17 +75,33 @@ const OrdersPage = () => {
         
         return {
           id: doc.id,
-          date: new Date(data.createdAt).toLocaleDateString(),
-          files: data.files.map(file => file.fileName),
+          date: new Date(data.submitted_time).toLocaleDateString(),
+          files: data.files.map(file => ({
+            name: file.fileName,
+            pageCount: file.pageCount,
+            price: file.price,
+            settings: file.settings
+          })),
           status: data.status,
-          pickupTime: pickupTime,
-          totalPrice: data.totalAmount,
+          progress: data.progress,
+          payment: data.payment,
+          pickupTime: data.schedule.type === 'immediate' ? 'Immediate' : `${data.schedule.date} at ${data.schedule.time}`,
+          totalPrice: data.payment?.amount || "0.00",
           hubName: data.hubName,
+          timestamps: {
+            submitted: data.submitted_time,
+            processing: data.processing_started,
+            printing: data.printing_started,
+            completed: data.completed_time,
+            cancelled: data.cancelled_time,
+            error: data.error_time
+          },
+          errorMessage: data.error_message,
           details: {
             copies: data.files.reduce((sum, file) => sum + (file.settings?.copies || 1), 0),
-            color: data.files.some(file => file.settings?.color === 'color') ? 'color' : 'bw',
-            paper: 'standard',
-            size: 'a4'
+            color: data.files.some(file => file.settings?.color === 'color') ? 'color' : 'black',
+            paper: data.files[0]?.settings?.paperSize || 'A4',
+            doubleSided: data.files[0]?.settings?.doubleSided || false
           }
         };
       });
@@ -248,32 +264,55 @@ const OrdersPage = () => {
                       <h2 className="text-lg font-semibold">Order #{order.id}</h2>
                       <div className={`flex items-center gap-1 ${getStatusColor(order.status)}`}>
                         {getStatusIcon(order.status)}
-                        <span className="capitalize">{renderSafely(order.status)}</span>
+                        <span className="capitalize">{order.status}</span>
                       </div>
+                      {order.progress && order.progress.percentage > 0 && (
+                        <span className="text-sm text-gray-600">
+                          ({order.progress.percentage}% - Page {order.progress.current_page}/{order.progress.total_pages})
+                        </span>
+                      )}
                     </div>
 
                     <div className="text-sm text-gray-600 space-y-1">
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4" />
-                        <span>Pickup: {renderSafely(order.pickupTime)}</span>
+                        <span>Submitted: {new Date(order.timestamps.submitted).toLocaleString()}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4" />
-                        <span>{order.files.length} file(s): {order.files.join(', ')}</span>
+                        <Clock className="h-4 w-4" />
+                        <span>Pickup: {order.pickupTime}</span>
                       </div>
-                      {order.hubName && (
-                        <div className="text-sm text-gray-600">
-                          Hub: {renderSafely(order.hubName)}
+                      {order.files.map((file, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          <span>{file.name} ({file.pageCount} pages)</span>
+                        </div>
+                      ))}
+                      <div className="text-sm text-gray-600">
+                        Hub: {order.hubName}
+                      </div>
+                      {order.errorMessage && (
+                        <div className="flex items-center gap-2 text-red-600">
+                          <AlertTriangle className="h-4 w-4" />
+                          <span>{order.errorMessage}</span>
                         </div>
                       )}
                     </div>
                   </div>
 
                   <div className="flex flex-col md:items-end gap-2">
-                    <div className="text-lg font-semibold">₹{renderSafely(order.totalPrice)}</div>
+                    <div className="text-lg font-semibold">₹{order.totalPrice}</div>
                     <div className="text-sm text-gray-600">
-                      {renderSafely(order.details.copies)} copies • {order.details.color === 'bw' ? 'B&W' : 'Color'} • {renderSafely(order.details.paper)}
+                      {order.details.copies} copies • 
+                      {order.details.color === 'black' ? 'B&W' : 'Color'} • 
+                      {order.details.paper} •
+                      {order.details.doubleSided ? 'Double-sided' : 'Single-sided'}
                     </div>
+                    {order.payment && (
+                      <div className="text-xs text-gray-500">
+                        Payment ID: {order.payment.id}
+                      </div>
+                    )}
                   </div>
                 </div>
 

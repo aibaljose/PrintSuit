@@ -23,7 +23,7 @@ const PAPER_SIZES = {
 const FileUploadPrint = () => {
   const [previewFile, setPreviewFile] = useState(null);
   const location = useLocation();
-  const { hubname } = location.state || {};
+  const { hubname,hubid } = location.state || {};
   const navigate = useNavigate();
 
   // Common schedule state for all files
@@ -99,33 +99,49 @@ const FileUploadPrint = () => {
       const userId = decoded.uid;
 
       const printJobData = {
-        userId: userId || "unknown_user",
-        hubName: hubname || "unknown_hub",
-        createdAt: new Date().toISOString(),
-        paymentId: paymentResponse?.razorpay_payment_id || "unknown_payment",
-        orderId: paymentResponse?.razorpay_order_id || "unknown_order",
-        totalAmount: amount || 0,
+        userId: userId,
+        hubName: hubname,
+        hubId: hubid, // Since hub ID is not available in current context
+        submitted_time: new Date().toISOString(),
+        update_time: new Date().toISOString(),
+        processing_started: null,
+        printing_started: null,
+        completed_time: null,
+        cancelled_time: null,
+        error_time: null,
+        error_message: null,
         status: "pending",
-        // Add common schedule to the main job object
+        progress: {
+          current_page: 0,
+          percentage: 0,
+          total_pages: files.reduce((total, file) => total + file.settings.pageCount, 0)
+        },
         schedule: {
           type: schedule.type,
           date: schedule.date,
           time: schedule.time
         },
         files: files.map(file => ({
-          fileName: file?.file?.name || "unknown_file",
-          pageCount: file?.settings?.pageCount || 1,
+          fileName: file.file.name,
+          file_url: null,
+          pageCount: file.settings.pageCount,
+          price: calculatePrice(file),
           settings: {
-            color: file?.settings?.color || "black",
-            orientation: file?.settings?.orientation || "portrait",
-            copies: file?.settings?.copies || 1,
-            doubleSided: file?.settings?.doubleSided ?? false,
-            pageRange: file?.settings?.pageRange || "all",
-            customRange: file?.settings?.customRange || "",
-            // Remove individual schedule from file settings
-          },
-          price: calculatePrice(file) || 0
-        }))
+            color: file.settings.color ? "color" : "black",
+            copies: file.settings.copies,
+            customRange: file.settings.customRange,
+            doubleSided: file.settings.doubleSided,
+            orientation: file.settings.orientation,
+            pageRange: file.settings.pageRange,
+            paperSize: file.settings.paperSize,
+            type: "PDF"
+          }
+        })),
+        payment: {
+          amount: amount,
+          id: paymentResponse?.razorpay_payment_id,
+          orderId: paymentResponse?.razorpay_order_id
+        }
       };
 
       const docRef = await addDoc(collection(db, 'printJobs'), printJobData);
@@ -290,143 +306,172 @@ const FileUploadPrint = () => {
             <p>Hub Name: {hubname}</p>
           </div>
 
-          {/* Upload Section */}
-          <div className="bg-white p-6 shadow-sm border-b">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <input
-                type="file"
-                multiple
-                accept=".pdf"
-                onChange={handleFileUpload}
-                className="hidden"
-                id="file-upload"
-              />
-              <label
-                htmlFor="file-upload"
-                className="cursor-pointer"
-              >
-                <Upload className="w-4 h-4 text-blue-500 mx-auto mb-4" />
-                <p className="text-gray-600">
-                  {loading ? 'Processing files...' : 'Drag and drop PDF files here or click to browse'}
-                </p>
-                <button
-                  className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                  disabled={loading}
-                >
-                  {loading ? 'Processing...' : ''}
-                </button>
-              </label>
-            </div>
-          </div>
-
-          {/* Common Schedule Section - Moved from individual files to common section */}
-          {files.length > 0 && (
-            <div className="bg-white p-6 shadow-sm border-b">
-              <div className="mb-4">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">Schedule Print Job</h2>
-
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Schedule Type
-                  </label>
-                  <select
-                    value={schedule.type}
-                    onChange={(e) => setSchedule({ ...schedule, type: e.target.value })}
-                    className="w-full p-2 border rounded-lg"
+          {/* Main Content Layout */}
+          <div className="flex flex-col lg:flex-row gap-6 mt-6">
+            {/* Left Column - File Upload */}
+            <div className="w-full lg:w-1/2">
+              <div className="bg-white p-6 shadow-sm border rounded-lg">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                  <input
+                    type="file"
+                    multiple
+                    accept=".pdf"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="file-upload"
+                  />
+                  <label
+                    htmlFor="file-upload"
+                    className="cursor-pointer"
                   >
-                    <option value="immediate">Immediate Printing</option>
-                    <option value="scheduled">Schedule for Later</option>
-                  </select>
+                    <Upload className="w-4 h-4 text-blue-500 mx-auto mb-4" />
+                    <p className="text-gray-600">
+                      {loading ? 'Processing files...' : 'Drag and drop PDF files here or click to browse'}
+                    </p>
+                    <button
+                      className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                      disabled={loading}
+                    >
+                      {loading ? 'Processing...' : ''}
+                    </button>
+                  </label>
+                </div>
+              </div>
+
+              {/* Files List */}
+              {files.length > 0 && (
+                <div className="bg-white rounded-lg shadow-sm mt-6">
+                  {files.map(file => (
+                    <div key={file.id} className="p-4 border-b">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <FileText className="w-8 h-8 text-gray-400" />
+                          <div>
+                            <h3 className="font-medium text-gray-800">{file.file.name}</h3>
+                            <p className="text-sm text-gray-500">
+                              {file.settings.pageCount} pages • {formatFileSize(file.size)} •
+                              {file.type === 'application/pdf' ? ' PDF' : ' Unknown format'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <span className="text-lg font-semibold text-gray-700">
+                            ₹{calculatePrice(file)}
+                          </span>
+                          <button
+                            onClick={() => setExpandedFile(expandedFile === file.id ? null : file.id)}
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            {expandedFile === file.id ? <ChevronUp /> : <ChevronDown />}
+                          </button>
+                          <button
+                            onClick={() => removeFile(file.id)}
+                            className="text-red-400 hover:text-red-600"
+                          >
+                            <X />
+                          </button>
+                          <button
+                            onClick={() => setPreviewFile(previewFile?.id === file.id ? null : file)}
+                            className="text-gray-400 hover:text-gray-600 flex items-center"
+                          >
+                            <Eye className="w-4 h-4 mr-1" />
+                            Preview
+                          </button>
+                        </div>
+                      </div>
+                      {/* PDF Preview */}
+                      {previewFile?.id === file.id && (
+                        <div className="mt-4">
+                          <PDFPreview
+                            file={file.file}
+                            settings={{
+                              ...file.settings,
+                              paperSize: PAPER_SIZES[file.settings.paperSize]
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Right Column - Settings */}
+            {files.length > 0 && (
+              <div className="w-full lg:w-1/2">
+                {/* Schedule Section */}
+                <div className="bg-white p-6 shadow-sm border rounded-lg mb-6">
+                  <div className="mb-4">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4">Schedule Print Job</h2>
+
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Schedule Type
+                      </label>
+                      <select
+                        value={schedule.type}
+                        onChange={(e) => setSchedule({ ...schedule, type: e.target.value })}
+                        className="w-full p-2 border rounded-lg"
+                      >
+                        <option value="immediate">Immediate Printing</option>
+                        <option value="scheduled">Schedule for Later</option>
+                      </select>
+                    </div>
+
+                    {schedule.type === 'scheduled' && (
+                      <div className="grid grid-cols-2 gap-4 mt-4">
+                        <div>
+                          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                            <Calendar className="w-4 h-4" />
+                            Pick Date
+                          </label>
+                          <input
+                            type="date"
+                            min={new Date().toISOString().split('T')[0]}
+                            value={schedule.date}
+                            onChange={(e) => setSchedule({ ...schedule, date: e.target.value })}
+                            className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                            <Clock className="w-4 h-4" />
+                            Pick Time
+                          </label>
+                          <input
+                            type="time"
+                            value={schedule.time}
+                            onChange={(e) => setSchedule({ ...schedule, time: e.target.value })}
+                            className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <p className="text-sm text-gray-500 mt-4">
+                      {schedule.type === 'immediate'
+                        ? 'Your print job will be processed immediately after payment.'
+                        : 'Your print job will be processed at the scheduled time. Please ensure you submit before your desired print time.'}
+                    </p>
+                  </div>
                 </div>
 
-                {schedule.type === 'scheduled' && (
-                  <div className="grid grid-cols-2 gap-4 mt-4">
-                    <div>
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                        <Calendar className="w-4 h-4" />
-                        Pick Date
-                      </label>
-                      <input
-                        type="date"
-                        min={new Date().toISOString().split('T')[0]}
-                        value={schedule.date}
-                        onChange={(e) => setSchedule({ ...schedule, date: e.target.value })}
-                        className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                        <Clock className="w-4 h-4" />
-                        Pick Time
-                      </label>
-                      <input
-                        type="time"
-                        value={schedule.time}
-                        onChange={(e) => setSchedule({ ...schedule, time: e.target.value })}
-                        className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <p className="text-sm text-gray-500 mt-4">
-                  {schedule.type === 'immediate'
-                    ? 'Your print job will be processed immediately after payment.'
-                    : 'Your print job will be processed at the scheduled time. Please ensure you submit before your desired print time.'}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Files List */}
-          {files.length > 0 && (
-            <div className="bg-white rounded-b-lg shadow-sm">
-              {files.map(file => (
-                <div key={file.id} className="p-4 border-b">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <FileText className="w-8 h-8 text-gray-400" />
-                      <div>
-                        <h3 className="font-medium text-gray-800">{file.file.name}</h3>
-                        <p className="text-sm text-gray-500">
-                          {file.settings.pageCount} pages • {formatFileSize(file.size)} •
-                          {file.type === 'application/pdf' ? ' PDF' : ' Unknown format'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <span className="text-lg font-semibold text-gray-700">
-                        ₹{calculatePrice(file)}
-                      </span>
-                      <button
-                        onClick={() => setExpandedFile(expandedFile === file.id ? null : file.id)}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        {expandedFile === file.id ? <ChevronUp /> : <ChevronDown />}
-                      </button>
-                      <button
-                        onClick={() => removeFile(file.id)}
-                        className="text-red-400 hover:text-red-600"
-                      >
-                        <X />
-                      </button>
-                    </div>
-                   
-                  </div>
-
-                  {/* Print settings - removed individual schedule section */}
-                  {expandedFile === file.id && (
+                {/* File Settings */}
+                {expandedFile && (
+                  <div className="bg-white p-6 shadow-sm border rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Print Settings</h3>
                     <div className="mt-4 grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Print Type
                         </label>
                         <select
-                          value={file.settings.color ? 'color' : 'bw'}
+                          value={files.find(f => f.id === expandedFile).settings.color ? 'color' : 'bw'}
                           onChange={(e) => {
                             const newFiles = [...files];
-                            const index = newFiles.findIndex(f => f.id === file.id);
+                            const index = newFiles.findIndex(f => f.id === expandedFile);
                             newFiles[index].settings.color = e.target.value === 'color';
                             setFiles(newFiles);
                           }}
@@ -442,10 +487,10 @@ const FileUploadPrint = () => {
                           Orientation
                         </label>
                         <select
-                          value={file.settings.orientation}
+                          value={files.find(f => f.id === expandedFile).settings.orientation}
                           onChange={(e) => {
                             const newFiles = [...files];
-                            const index = newFiles.findIndex(f => f.id === file.id);
+                            const index = newFiles.findIndex(f => f.id === expandedFile);
                             newFiles[index].settings.orientation = e.target.value;
                             setFiles(newFiles);
                           }}
@@ -463,13 +508,13 @@ const FileUploadPrint = () => {
                         <input
                           type="number"
                           min="1"
-                          value={file.settings.copies}
+                          value={files.find(f => f.id === expandedFile).settings.copies}
                           onChange={(e) => {
                             const newValue = parseInt(e.target.value, 10);
 
                             if (!isNaN(newValue) && newValue > 0) {
                               const newFiles = [...files];
-                              const index = newFiles.findIndex((f) => f.id === file.id);
+                              const index = newFiles.findIndex((f) => f.id === expandedFile);
                               newFiles[index].settings.copies = newValue;
                               setFiles(newFiles);
                             }
@@ -483,10 +528,10 @@ const FileUploadPrint = () => {
                           Page Range
                         </label>
                         <select
-                          value={file.settings.pageRange}
+                          value={files.find(f => f.id === expandedFile).settings.pageRange}
                           onChange={(e) => {
                             const newFiles = [...files];
-                            const index = newFiles.findIndex(f => f.id === file.id);
+                            const index = newFiles.findIndex(f => f.id === expandedFile);
                             newFiles[index].settings.pageRange = e.target.value;
                             setFiles(newFiles);
                           }}
@@ -497,17 +542,17 @@ const FileUploadPrint = () => {
                         </select>
                       </div>
                      
-                      {file.settings.pageRange === 'custom' && (
+                      {files.find(f => f.id === expandedFile).settings.pageRange === 'custom' && (
                         <div className="col-span-2">
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Custom Range (e.g., 1-3,5,7-9)
                           </label>
                           <input
                             type="text"
-                            value={file.settings.customRange}
+                            value={files.find(f => f.id === expandedFile).settings.customRange}
                             onChange={(e) => {
                               const newFiles = [...files];
-                              const index = newFiles.findIndex(f => f.id === file.id);
+                              const index = newFiles.findIndex(f => f.id === expandedFile);
                               newFiles[index].settings.customRange = e.target.value;
                               setFiles(newFiles);
                             }}
@@ -521,10 +566,10 @@ const FileUploadPrint = () => {
                         <label className="flex items-center space-x-2">
                           <input
                             type="checkbox"
-                            checked={file.settings.doubleSided}
+                            checked={files.find(f => f.id === expandedFile).settings.doubleSided}
                             onChange={(e) => {
                               const newFiles = [...files];
-                              const index = newFiles.findIndex(f => f.id === file.id);
+                              const index = newFiles.findIndex(f => f.id === expandedFile);
                               newFiles[index].settings.doubleSided = e.target.checked;
                               setFiles(newFiles);
                             }}
@@ -538,10 +583,10 @@ const FileUploadPrint = () => {
                         <label className="flex items-center space-x-2">
                           <input
                             type="checkbox"
-                            checked={file.settings.fitToPage}
+                            checked={files.find(f => f.id === expandedFile).settings.fitToPage}
                             onChange={(e) => {
                               const newFiles = [...files];
-                              const index = newFiles.findIndex(f => f.id === file.id);
+                              const index = newFiles.findIndex(f => f.id === expandedFile);
                               newFiles[index].settings.fitToPage = e.target.checked;
                               setFiles(newFiles);
                             }}
@@ -555,10 +600,10 @@ const FileUploadPrint = () => {
                           Paper Size
                         </label>
                         <select
-                          value={file.settings.paperSize}
+                          value={files.find(f => f.id === expandedFile).settings.paperSize}
                           onChange={(e) => {
                             const newFiles = [...files];
-                            const index = newFiles.findIndex(f => f.id === file.id);
+                            const index = newFiles.findIndex(f => f.id === expandedFile);
                             newFiles[index].settings.paperSize = e.target.value;
                             setFiles(newFiles);
                           }}
@@ -571,43 +616,28 @@ const FileUploadPrint = () => {
                           ))}
                         </select>
                       </div>
-                      <button
-                      onClick={() => setPreviewFile(previewFile?.id === file.id ? null : file)}
-                      className="text-gray-400 hover:text-gray-600"
-                    ><Eye className="mr-2 text-gray-600" />
-                      {previewFile?.id === file.id ? <ChevronUp /> : <ChevronDown />}
-                    </button>
-                      {previewFile?.id === file.id && (
-                        <div className="mt-4 col-span-2">
-                          <PDFPreview
-                            file={file.file}
-                            settings={{
-                              ...file.settings,
-                              paperSize: PAPER_SIZES[file.settings.paperSize]
-                            }}
-                          />
-                        </div>
-                      )}
                     </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                )}
 
-              {/* Total Price */}
-              <div className="p-6 bg-gray-50">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-gray-600">Total Price:</span>
-                  <span className="text-2xl font-bold text-gray-800">
-                    ₹{files.reduce((sum, file) => sum + parseFloat(calculatePrice(file)), 0).toFixed(2)}
-                  </span>
+                {/* Total Price Section */}
+                <div className="bg-white p-6 shadow-sm border rounded-lg mt-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-gray-600">Total Price:</span>
+                    <span className="text-2xl font-bold text-gray-800">
+                      ₹{files.reduce((sum, file) => sum + parseFloat(calculatePrice(file)), 0).toFixed(2)}
+                    </span>
+                  </div>
+                  <button 
+                    onClick={handlePayment} 
+                    className="w-full py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                  >
+                    Proceed to Checkout
+                  </button>
                 </div>
-
-                <button onClick={handlePayment} className="w-full py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium">
-                  Proceed to Checkout
-                </button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </>
