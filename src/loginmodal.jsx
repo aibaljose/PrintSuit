@@ -80,7 +80,7 @@ const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
         }
 
         // Continue with existing login logic
-        const response = await axios.post('http://localhost:5000/login', {
+        const response = await axios.post('https://printsuit-backend.onrender.com/login', {
           email: user.email,
           uid: user.uid,
           name: userData?.name || user.displayName, // Use optional chaining

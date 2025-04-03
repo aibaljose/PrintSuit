@@ -314,7 +314,7 @@ const SignupModal = ({ isOpen, onClose, navigate, switchToLogin }) => {
             const user = result.user;
 
             if (user.emailVerified) {
-                const response = await axios.post('http://localhost:5000/auth/google', {
+                const response = await axios.post('https://printsuit-backend.onrender.com/auth/google', {
                     uid: user.uid,
                     email: user.email,
                     name: user.displayName,
