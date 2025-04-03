@@ -1,67 +1,80 @@
-import React, { useState, useEffect } from 'react';
-import { db, collection, getDocs, query, where, orderBy, onSnapshot } from "../component/firebase";
-import { FileText, Clock, CheckCircle, AlertTriangle, Printer, RefreshCw, ChevronDown, Settings, DollarSign, Calendar } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { db } from './component/firebase';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { toast } from 'react-toastify';
+import { jwtDecode } from 'jwt-decode';
+import { FileText, Clock, CheckCircle, AlertTriangle, Printer, RefreshCw, ChevronDown, Settings, DollarSign, ArrowUpDown } from 'lucide-react';
 
-const PrintJobMonitoring = () => {
+const Staff = () => {
   const [printJobs, setPrintJobs] = useState([]);
+  const [hubId, setHubId] = useState(null);
+  const [userDetails, setUserDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('all');
-  const [lastUpdate, setLastUpdate] = useState(new Date());
   const [selectedFileIndices, setSelectedFileIndices] = useState({});
-  const [expandedDetails, setExpandedDetails] = useState({});
   const [expandedFiles, setExpandedFiles] = useState({});
+  const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [sortBy, setSortBy] = useState('newest'); // Add this new state
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Create query for print jobs
-    const printJobsRef = collection(db, "printJobs");
-    const q = query(printJobsRef, orderBy("submitted_time", "desc"));
+    const checkUserAndFetchData = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("Please login to continue", { position: "top-center" });
+        navigate("/");
+        return;
+      }
 
-    // Set up real-time listener
-    const unsubscribe = onSnapshot(q, (snapshot) => {
       try {
-        const jobs = snapshot.docs.map(doc => ({
+        const decoded = jwtDecode(token);
+        setUserDetails(decoded);
+        console.log("Decoded token:", decoded); // Debug log
+
+        if (!decoded.role || decoded.role !== 'staff') {
+          toast.error("You are not authorized to access this page", { position: "top-center" });
+          navigate('/');
+          return;
+        }
+
+        // Fetch user data from Users collection
+        const userDoc = await getDoc(doc(db, 'Users', decoded.uid));
+        if (!userDoc.exists()) {
+          toast.error("User data not found", { position: "top-center" });
+          return;
+        }
+
+        const userData = userDoc.data();
+        if (!userData.hubId) {
+          toast.error("No hub assigned to staff", { position: "top-center" });
+          return;
+        }
+
+        // Fetch print jobs for staff's hub using hubId from user document
+        const jobsRef = collection(db, 'printJobs');
+        console.log("Fetching jobs for hubId:", userData.hubId); // Debug log
+        const jobsQuery = query(jobsRef, where('hubId', '==', userData.hubId));
+        const jobsSnapshot = await getDocs(jobsQuery);
+        
+        const jobs = jobsSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
         setPrintJobs(jobs);
-        setLastUpdate(new Date());
-        setError(null);
-      } catch (err) {
-        setError("Failed to update print jobs");
-        console.error("Error in real-time update:", err);
-      } finally {
+        setHubId(userData.hubId);
         setLoading(false);
+
+      } catch (error) {
+        console.error("Error:", error); // Better error logging
+        localStorage.removeItem("token");
+        toast.error("Session expired. Please login again", { position: "top-center" });
+        navigate("/");
       }
-    }, (error) => {
-      setError("Failed to listen to print jobs updates");
-      console.error("Snapshot listener error:", error);
-      setLoading(false);
-    });
+    };
 
-    // Cleanup subscription
-    return () => unsubscribe();
-  }, []);
-
-  const fetchPrintJobs = async () => {
-    try {
-      const printJobsRef = collection(db, "printJobs");
-      const q = query(printJobsRef, orderBy("submitted_time", "desc"));
-      const querySnapshot = await getDocs(q);
-      
-      const jobs = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      
-      setPrintJobs(jobs);
-    } catch (err) {
-      setError("Failed to fetch print jobs");
-      console.error("Error fetching print jobs:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    checkUserAndFetchData();
+  }, [navigate]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -83,13 +96,6 @@ const PrintJobMonitoring = () => {
     }
   };
 
-  const toggleDetails = (jobId) => {
-    setExpandedDetails(prev => ({
-      ...prev,
-      [jobId]: !prev[jobId]
-    }));
-  };
-
   const toggleFiles = (jobId) => {
     setExpandedFiles(prev => ({
       ...prev,
@@ -97,9 +103,22 @@ const PrintJobMonitoring = () => {
     }));
   };
 
-  const filteredJobs = filter === 'all' 
-    ? printJobs 
-    : printJobs.filter(job => job.status === filter);
+  const getSortedJobs = () => {
+    return [...printJobs].sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.submitted_time) - new Date(a.submitted_time);
+        case 'oldest':
+          return new Date(a.submitted_time) - new Date(b.submitted_time);
+        case 'completed':
+          return (b.status === 'completed') - (a.status === 'completed');
+        case 'pending':
+          return (b.status === 'pending') - (a.status === 'pending');
+        default:
+          return 0;
+      }
+    });
+  };
 
   if (loading) return <div className="flex justify-center p-8">Loading...</div>;
   if (error) return <div className="text-red-600 p-4">{error}</div>;
@@ -108,50 +127,51 @@ const PrintJobMonitoring = () => {
     <div className="bg-white rounded-xl shadow-lg p-4 md:p-6 mx-auto w-full max-w-full overflow-hidden">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
         <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-          Print Jobs Monitor
+          Print Jobs
         </h2>
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full lg:w-auto">
-          <span className="text-sm text-gray-500 whitespace-nowrap">
+        <div className="flex items-center gap-4">
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm"
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="completed">Completed First</option>
+            <option value="pending">Pending First</option>
+          </select>
+          <span className="text-sm text-gray-500">
             Last updated: {lastUpdate.toLocaleTimeString()}
           </span>
-          <div className="flex gap-2 w-full md:w-auto">
-            <select 
-              className="border rounded-lg p-2 bg-gray-50 hover:bg-gray-100 transition-colors flex-grow md:flex-grow-0"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-            >
-              <option value="all">All Jobs</option>
-              <option value="completed">Completed</option>
-              <option value="processing">Processing</option>
-              <option value="pending">Pending</option>
-              <option value="failed">Failed</option>
-            </select>
-            <button 
-              onClick={fetchPrintJobs}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 flex-shrink-0"
-            >
-              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-              <span className="hidden md:inline">{loading ? 'Updating...' : 'Refresh'}</span>
-            </button>
-          </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            <RefreshCw size={16} />
+            Refresh
+          </button>
         </div>
       </div>
 
-      {/* Grid view for all screen sizes */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredJobs.map((job) => {
+        {getSortedJobs().map((job) => {
           const selectedFileIndex = selectedFileIndices[job.id] || 0;
           const selectedFile = job.files?.[selectedFileIndex] || {};
-          const isDetailsExpanded = expandedDetails[job.id];
+          
+          const getBorderColor = () => {
+            if (job.status === 'completed') return 'border-green-400';
+            if (job.status === 'failed') return 'border-red-400';
+            return 'border-gray-200';
+          };
           
           return (
-            <div key={job.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+            <div key={job.id} className={`bg-white rounded-xl border-[2px] ${getBorderColor()} shadow-sm hover:shadow-md transition-shadow overflow-hidden`}>
               {/* Header */}
               <div className="p-4 border-b border-gray-100 bg-gray-50/50">
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <div className="text-xs text-gray-500">Job ID: {job.id}</div>
-                    <div className="font-medium text-gray-900 mt-1">{job.hubName}</div>
+                    <div className="font-medium text-gray-900 mt-1">{job.customerName}</div>
                   </div>
                   <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(job.status)}`}>
                     {getStatusIcon(job.status)}
@@ -175,7 +195,7 @@ const PrintJobMonitoring = () => {
               </div>
 
               {/* Progress section */}
-              {job.progress && (
+              {job.progress && job.status !== 'completed' && (
                 <div className="p-4 border-b border-gray-100">
                   <div className="flex justify-between text-xs mb-1.5">
                     <span className="font-medium text-gray-700">{job.progress.current_page}/{job.progress.total_pages} pages</span>
@@ -267,30 +287,8 @@ const PrintJobMonitoring = () => {
           </div>
         );
       })}
-
-      <style jsx>{`
-        .custom-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: #ddd #f1f1f1;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          height: 6px;
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #ddd;
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #cdcdcd;
-        }
-      `}</style>
     </div>
   );
 };
 
-export default PrintJobMonitoring;
+export default Staff;

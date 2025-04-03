@@ -1,13 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { db, collection, getDocs, query, where } from "./firebase";
+import { db, collection, getDocs, query, where,auth } from "./firebase";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { useNavigate } from 'react-router-dom';
 
 const AdminLoginModal = ({ isOpen, onClose, onLogin }) => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        // User is already signed in, check if admin
+        checkAdminStatus(user);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const checkAdminStatus = async (user) => {
+    try {
+      const q = query(
+        collection(db, "Users"),
+        where("email", "==", user.email),
+        where("role", "==", "admin")
+      );
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const adminUser = {
+          ...querySnapshot.docs[0].data(),
+          uid: user.uid,
+        };
+        onLogin(adminUser);
+      } else {
+        await auth.signOut();
+        setError('Access denied. Only admin users are allowed.');
+      }
+    } catch (err) {
+      console.error("Error checking admin status:", err);
+      setError('Failed to verify admin status');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();

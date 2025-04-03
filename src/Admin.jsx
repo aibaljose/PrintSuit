@@ -10,6 +10,8 @@ import { FirebaseError } from 'firebase/app';
 import UserManagement from './component/UserManagement';
 import AdminLoginModal from './component/AdminLoginModal';
 import PrintJobMonitoring from './component/PrintJobMonitoring';
+import { auth } from './component/firebase';
+import { signOut } from 'firebase/auth';
 
 const PrinterHubModal = ({ isOpen, onClose, onSubmit, formData, setFormData, loading, error, editingHub }) => {
   if (!isOpen) return null;
@@ -514,6 +516,46 @@ const PrintSuitAdminDashboard = () => {
     setShowLoginModal(false);
   };
 
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        // Check if user is admin in Firestore
+        const q = query(
+          collection(db, "Users"),
+          where("email", "==", user.email),
+          where("role", "==", "admin")
+        );
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          setAdminUser(user);
+          setIsAuthenticated(true);
+          setShowLoginModal(false);
+        } else {
+          await auth.signOut();
+          setIsAuthenticated(false);
+          setShowLoginModal(true);
+        }
+      } else {
+        setIsAuthenticated(false);
+        setShowLoginModal(true);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setAdminUser(null);
+      setIsAuthenticated(false);
+      setShowLoginModal(true);
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <AdminLoginModal
@@ -575,6 +617,14 @@ const PrintSuitAdminDashboard = () => {
                 {item.name}
               </button>
             ))}
+            
+            <button
+              onClick={handleLogout}
+              className="flex items-center w-full p-3 mb-2 rounded-lg transition-colors hover:bg-red-100 text-red-600"
+            >
+              <Power className="mr-3" />
+              Logout
+            </button>
           </nav>
         </div>
       </div>

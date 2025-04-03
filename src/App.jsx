@@ -3,6 +3,13 @@ import Login from "./Login"
 import Signup from "./Signup"
 import Home from "./Home"
 import Admin from "./Admin"
+import StaffLayout from './layouts/StaffLayout';
+import StaffDashboard from './pages/StaffDashboard';
+import Staff from './staff';
+
+// In your router setup
+import Printer from './printer';
+
 import FileUploadPage from "./FileUploadPage"
 import PrinterLocator from './PrinterLocator'
 import 'react-toastify/dist/ReactToastify.css';
@@ -26,6 +33,8 @@ const App = () => {
          
           <Route path="/login" Component={Login} />
           <Route path="/signup" Component={Signup} />
+          <Route path="/signup" Component={Signup} />
+          <Route path="/printer" Component={Printer} />
           
           <Route path="/locate" Component={PrinterLocator} />
           <Route path="/upload" Component={FileUploadPage} />
@@ -35,8 +44,10 @@ const App = () => {
           <Route path='/paysucess'  Component={paysucess} />
           <Route path='/profile'  Component={Profile} />
           <Route path='/orders'  Component={OrdersPage} />
+          <Route path='/staff'  Component={StaffLayout} />
           <Route path='/test'  Component={ConnectionConstellation} />
           <Route path="/order/:orderId" element={<OrderDetails />} />
+          <Route path="/staff/*" element={<StaffLayout />} />
 
 
 
