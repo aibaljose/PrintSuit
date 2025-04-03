@@ -1,6 +1,6 @@
 import { VitePWA } from 'vite-plugin-pwa';
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -33,12 +33,21 @@ export default defineConfig({
       type: 'module',
     },
   })],
-  optimizeDeps: {
-    include: ['pdfjs-dist']
+
+  server: {
+    mimeTypes: {
+      'text/javascript': ['js'],
+    },
   },
+
+  optimizeDeps: {
+    include: ['pdfjs-dist'],
+  },
+
   build: {
+    outDir: 'dist',
     commonjsOptions: {
-      include: [/pdfjs-dist/]
-    }
-  }
-})
+      include: [/pdfjs-dist/],
+    },
+  },
+});
