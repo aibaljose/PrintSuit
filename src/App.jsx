@@ -19,7 +19,6 @@ import Payment from './payment';
 import Profile from "./profile"
 import OrdersPage from './orders'
 import Nav from "./nav"
-import ConnectionConstellation from "./test2"
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import OrderDetails from './orderDetails';
 
@@ -45,7 +44,6 @@ const App = () => {
           <Route path='/profile'  Component={Profile} />
           <Route path='/orders'  Component={OrdersPage} />
           <Route path='/staff'  Component={StaffLayout} />
-          <Route path='/test'  Component={ConnectionConstellation} />
           <Route path="/order/:orderId" element={<OrderDetails />} />
           <Route path="/staff/*" element={<StaffLayout />} />
 
