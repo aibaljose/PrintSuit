@@ -242,7 +242,7 @@ import {
 } from "firebase/auth";
 import { auth, db } from "./component/firebase";
 import { setDoc, doc } from "firebase/firestore";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 const SignupModal = ({ isOpen, onClose, navigate, switchToLogin }) => {
     const [email, setEmail] = useState("");

@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Home, Upload, Settings, User as UserIcon, LogOut, Menu } from "react-feather";
 import { jwtDecode } from "jwt-decode";
 import P from  "./assets/p.png";
-import { toast } from "react-toastify";
+import { toast } from "sonner"; // Changed from react-toastify to sonner
 
 const Nav = ({ switchToSignup, onUserDetailsUpdate  }) => {
   const [userDetails, setUserDetails] = useState(null);
@@ -122,7 +122,7 @@ const Nav = ({ switchToSignup, onUserDetailsUpdate  }) => {
                 if (userDetails) {
                   navigate("/locate");
                 } else {
-                  toast.warning(`Please login to access this page`, { position: "top-center" });
+                  toast.warning("Please login to access this page");
                   // alert("Please login to access this page");
                 }
               }}>
@@ -132,7 +132,7 @@ const Nav = ({ switchToSignup, onUserDetailsUpdate  }) => {
                 if (userDetails) {
                   navigate("/orders");
                 } else {
-                  toast.warning(`Please login to access this page`, { position: "top-center" });
+                  toast.warning("Please login to access this page");
                 }
               }}>
                 

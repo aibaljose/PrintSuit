@@ -8,7 +8,7 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { auth, db } from "./component/firebase";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { setDoc, doc } from "firebase/firestore";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -39,14 +39,14 @@ const Login = () => {
             photo: user.photoURL,
             role:"user"
           });
-          toast.success("User logged in successfully with Google", { position: "top-center" });
+          toast.success("User logged in successfully with Google");
           navigate("/locate");
         } else {
-          toast.warning("Your Gmail is not verified. Please verify it before proceeding.", { position: "top-center" });
+          toast.warning("Your Gmail is not verified. Please verify it before proceeding.");
         }
       })
       .catch((error) => {
-        toast.error(`Google login failed: ${error.message}`, { position: "top-center" });
+        toast.error(`Google login failed: ${error.message}`);
       });
   };
 
@@ -58,27 +58,27 @@ const Login = () => {
       const user = userCredential.user;
 
       if (user.emailVerified) {
-        toast.success("User logged in successfully with Email", { position: "top-center" });
+        toast.success("User logged in successfully with Email");
         navigate("/locate");
       } else {
-        toast.warning("Your email is not verified. Please verify it to continue.", { position: "top-center" });
+        toast.warning("Your email is not verified. Please verify it to continue.");
       }
     } catch (error) {
       switch (error.code) {
         case "auth/invalid-credential":
-          toast.error("No user found with this email. Please sign up first.", { position: "top-center" });
+          toast.error("No user found with this email. Please sign up first.");
           break;
         case "auth/wrong-password":
-          toast.error("Incorrect password. Please try again.", { position: "top-center" });
+          toast.error("Incorrect password. Please try again.");
           break;
         case "auth/invalid-email":
-          toast.error("Invalid email format. Please enter a valid email.", { position: "top-center" });
+          toast.error("Invalid email format. Please enter a valid email.");
           break;
         case "auth/too-many-requests":
-          toast.error("Too many login attempts. Please try again later.", { position: "top-center" });
+          toast.error("Too many login attempts. Please try again later.");
           break;
         default:
-          toast.error(`Login failed: ${error.message}`, { position: "top-center" });
+          toast.error(`Login failed: ${error.message}`);
           break;
       }
     }
@@ -87,23 +87,23 @@ const Login = () => {
   // Forgot Password Function
   const handleForgotPassword = async () => {
     if (!email) {
-      toast.warning("Please enter your email to reset password.", { position: "top-center" });
+      toast.warning("Please enter your email to reset password.");
       return;
     }
 
     try {
       await sendPasswordResetEmail(auth, email);
-      toast.success("Password reset email sent! Check your inbox.", { position: "top-center" });
+      toast.success("Password reset email sent! Check your inbox.");
     } catch (error) {
       switch (error.code) {
         case "auth/user-not-found":
-          toast.error("No account found with this email.", { position: "top-center" });
+          toast.error("No account found with this email.");
           break;
         case "auth/invalid-email":
-          toast.error("Invalid email format.", { position: "top-center" });
+          toast.error("Invalid email format.");
           break;
         default:
-          toast.error(`Error: ${error.message}`, { position: "top-center" });
+          toast.error(`Error: ${error.message}`);
           break;
       }
     }

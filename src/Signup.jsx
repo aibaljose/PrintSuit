@@ -10,7 +10,7 @@ import {
 import { auth, db } from "./component/firebase";
 import { setDoc, doc } from "firebase/firestore";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 const Signup = () => {
   const [email, setEmail] = useState("");

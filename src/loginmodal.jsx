@@ -8,7 +8,7 @@ import {
   fetchSignInMethodsForEmail
 } from "firebase/auth";
 import { auth, db } from "./component/firebase";
-import { toast } from "react-toastify";
+import { toast } from "sonner"; // Changed from react-toastify to sonner
 import axios from 'axios';
 import { collection, doc, getDoc } from "firebase/firestore";
 
@@ -32,7 +32,7 @@ const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
         const userDocSnap = await getDoc(userDocRef);
         
         if (userDocSnap.exists() && userDocSnap.data().isActive === false) {
-          toast.error("Your account has been disabled. Please contact support.", { position: "top-center" });
+          toast.error("Your account has been disabled. Please contact support.");
           return;
         }
 
@@ -48,14 +48,14 @@ const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
         // Store JWT token
         localStorage.setItem('token', response.data.token);
 
-        toast.success("Successfully logged in with Google", { position: "top-center" });
+        toast.success("Successfully logged in with Google");
         navigate("/locate");
         onClose();
       } else {
-        toast.warning("Please verify your email before proceeding.", { position: "top-center" });
+        toast.warning("Please verify your email before proceeding.");
       }
     } catch (error) {
-      toast.error(`Google login failed: ${error.message}`, { position: "top-center" });
+      toast.error(`Google login failed: ${error.message}`);
     }
   };
 
@@ -75,7 +75,7 @@ const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
         const userData = userDocSnap.data();
 
         if (userData?.isActive === false) {
-          toast.error("Your account has been disabled. Please contact support.", { position: "top-center" });
+          toast.error("Your account has been disabled. Please contact support.");
           return;
         }
 
@@ -89,11 +89,11 @@ const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
         localStorage.setItem('token', response.data.token);
         console.log(response.data.token);
 
-        toast.success("Successfully logged in", { position: "top-center" });
+        toast.success("Successfully logged in");
         navigate("/locate");
         onClose();
       } else {
-        toast.warning("Please verify your email to continue.", { position: "top-center" });
+        toast.warning("Please verify your email to continue.");
       }
     } catch (error) {
       handleLoginError(error);
@@ -106,22 +106,22 @@ const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
   const handleLoginError = (error) => {
     switch (error.code) {
       case "auth/invalid-credential":
-        toast.error("Invalid credentials. Please check your email and password.", { position: "top-center" });
+        toast.error("Invalid credentials. Please check your email and password.");
         break;
       case "auth/wrong-password":
-        toast.error("Incorrect password.", { position: "top-center" });
+        toast.error("Incorrect password.");
         break;
       case "auth/invalid-email":
-        toast.error("Invalid email format.", { position: "top-center" });
+        toast.error("Invalid email format.");
         break;
       case "auth/too-many-requests":
-        toast.error("Too many login attempts. Please try again later.", { position: "top-center" });
+        toast.error("Too many login attempts. Please try again later.");
         break;
       case "auth/user-disabled":
-        toast.error("This account has been disabled.", { position: "top-center" });
+        toast.error("This account has been disabled.");
         break;
       default:
-        toast.error(`Login failed: ${error.message}`, { position: "top-center" });
+        toast.error(`Login failed: ${error.message}`);
         break;
     }
   };
@@ -129,7 +129,7 @@ const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
   // Forgot Password Function
   const handleForgotPassword = async () => {
     if (!email) {
-      toast.warning("Please enter your email to reset your password.", { position: "top-center" });
+      toast.warning("Please enter your email to reset your password.");
       return;
     }
   
@@ -138,21 +138,21 @@ const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
       const signInMethods = await fetchSignInMethodsForEmail(auth, email);
   
       if (signInMethods.length === 0) {
-        toast.error("No account found with this email.", { position: "top-center" });
+        toast.error("No account found with this email.");
         return;
       }
   
       // Send password reset email
       await sendPasswordResetEmail(auth, email);
-      toast.success("Password reset email sent! Check your inbox.", { position: "top-center" });
+      toast.success("Password reset email sent! Check your inbox.");
   
     } catch (error) {
       switch (error.code) {
         case "auth/invalid-email":
-          toast.error("Invalid email format.", { position: "top-center" });
+          toast.error("Invalid email format.");
           break;
         default:
-          toast.error(`Error: ${error.message}`, { position: "top-center" });
+          toast.error(`Error: ${error.message}`);
           break;
       }
     }
