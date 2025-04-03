@@ -6,6 +6,7 @@ import Admin from "./Admin"
 import StaffLayout from './layouts/StaffLayout';
 import StaffDashboard from './pages/StaffDashboard';
 import Staff from './staff';
+// Ensure it exists
 
 // In your router setup
 import Printer from './printer';
