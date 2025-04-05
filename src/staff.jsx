@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from './component/firebase';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
-import { toast } from 'sonner';
+import { toast } from 'react-hot-toast';
 import { jwtDecode } from 'jwt-decode';
 import { FileText, Clock, CheckCircle, AlertTriangle, Printer, RefreshCw, ChevronDown, Settings, DollarSign, ArrowUpDown } from 'lucide-react';
 
@@ -22,7 +22,7 @@ const Staff = () => {
     const checkUserAndFetchData = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
-        toast.error("Please login to continue", { position: "top-center" });
+        toast.error("Please login to continue");
         navigate("/");
         return;
       }
@@ -33,7 +33,7 @@ const Staff = () => {
         console.log("Decoded token:", decoded); // Debug log
 
         if (!decoded.role || decoded.role !== 'staff') {
-          toast.error("You are not authorized to access this page", { position: "top-center" });
+          toast.error("You are not authorized to access this page");
           navigate('/');
           return;
         }
@@ -41,13 +41,13 @@ const Staff = () => {
         // Fetch user data from Users collection
         const userDoc = await getDoc(doc(db, 'Users', decoded.uid));
         if (!userDoc.exists()) {
-          toast.error("User data not found", { position: "top-center" });
+          toast.error("User data not found");
           return;
         }
 
         const userData = userDoc.data();
         if (!userData.hubId) {
-          toast.error("No hub assigned to staff", { position: "top-center" });
+          toast.error("No hub assigned to staff");
           return;
         }
 
@@ -68,7 +68,7 @@ const Staff = () => {
       } catch (error) {
         console.error("Error:", error); // Better error logging
         localStorage.removeItem("token");
-        toast.error("Session expired. Please login again", { position: "top-center" });
+        toast.error("Session expired. Please login again");
         navigate("/");
       }
     };

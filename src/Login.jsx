@@ -8,7 +8,7 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { auth, db } from "./component/firebase";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { setDoc, doc } from "firebase/firestore";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -58,29 +58,13 @@ const Login = () => {
       const user = userCredential.user;
 
       if (user.emailVerified) {
-        toast.success("User logged in successfully with Email");
+        toast.success("Successfully logged in");
         navigate("/locate");
       } else {
         toast.warning("Your email is not verified. Please verify it to continue.");
       }
     } catch (error) {
-      switch (error.code) {
-        case "auth/invalid-credential":
-          toast.error("No user found with this email. Please sign up first.");
-          break;
-        case "auth/wrong-password":
-          toast.error("Incorrect password. Please try again.");
-          break;
-        case "auth/invalid-email":
-          toast.error("Invalid email format. Please enter a valid email.");
-          break;
-        case "auth/too-many-requests":
-          toast.error("Too many login attempts. Please try again later.");
-          break;
-        default:
-          toast.error(`Login failed: ${error.message}`);
-          break;
-      }
+      toast.error("Login failed: " + error.message);
     }
   };
 

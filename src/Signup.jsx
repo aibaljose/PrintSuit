@@ -10,7 +10,7 @@ import {
 import { auth, db } from "./component/firebase";
 import { setDoc, doc } from "firebase/firestore";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -48,14 +48,12 @@ const Signup = () => {
             photo: user.photoURL,
             role: "user",
           });
-          toast.success("User logged in successfully with Google", {
-            position: "top-center",
-          });
+          toast.success("User logged in successfully with Google");
           window.location.href = "/login";
         }
       })
       .catch((error) => {
-        toast.error(`Google login failed: ${error.message}`, { position: "top-center" });
+        toast.error(`Google login failed: ${error.message}`);
       });
   };
 
@@ -63,7 +61,7 @@ const Signup = () => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match!", { position: "top-center" });
+      toast.error("Passwords do not match!");
       return;
     }
 
@@ -84,12 +82,11 @@ const Signup = () => {
       });
 
       toast.success(
-        "Account created successfully! A verification email has been sent to your email address.",
-        { position: "top-center" }
+        "Account created successfully! A verification email has been sent."
       );
       navigate("/login"); // Redirect to login page
     } catch (error) {
-      toast.error(`Error: ${error.message}`, { position: "top-center" });
+      toast.error(`Error: ${error.message}`);
     } finally {
       setLoading(false);
     }

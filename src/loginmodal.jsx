@@ -8,7 +8,7 @@ import {
   fetchSignInMethodsForEmail
 } from "firebase/auth";
 import { auth, db } from "./component/firebase";
-import { toast } from "sonner"; // Changed from react-toastify to sonner
+import { toast } from "react-hot-toast"; // Changed from react-toastify to react-hot-toast
 import axios from 'axios';
 import { collection, doc, getDoc } from "firebase/firestore";
 
@@ -55,7 +55,7 @@ const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
         toast.warning("Please verify your email before proceeding.");
       }
     } catch (error) {
-      toast.error(`Google login failed: ${error.message}`);
+      toast.error("Google login failed: " + error.message);
     }
   };
 
@@ -106,10 +106,10 @@ const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
   const handleLoginError = (error) => {
     switch (error.code) {
       case "auth/invalid-credential":
-        toast.error("Invalid credentials. Please check your email and password.");
+        toast.error("Invalid credentials");
         break;
       case "auth/wrong-password":
-        toast.error("Incorrect password.");
+        toast.error("Incorrect password");
         break;
       case "auth/invalid-email":
         toast.error("Invalid email format.");

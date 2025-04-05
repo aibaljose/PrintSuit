@@ -22,15 +22,21 @@ import OrdersPage from './orders'
 import Nav from "./nav"
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import OrderDetails from './orderDetails';
-import { Toaster } from 'sonner';
+import { Toaster } from 'react-hot-toast';
 
 const App = () => {
   return (
     <>
-      <Toaster 
+      <Toaster
         position="top-center"
-        expand={true}
-        richColors
+        reverseOrder={false}
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+        }}
       />
       <Router>
         <div className="app h-screen w-full ">
