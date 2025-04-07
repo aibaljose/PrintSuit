@@ -296,7 +296,7 @@ const Nav = ({ switchToSignup, onUserDetailsUpdate  }) => {
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t z-10 flex justify-around py-2 shadow-lg">
           <NavItem icon={Home} path="/" label="Home" />
           <NavItem icon={Printer} path="/locate" label="Hubs" />
-          <NavItem icon={Truck} path="/about" label="Orders" />
+          <NavItem icon={Truck} path="/orders" label="Orders" />
           {userDetails ? (
             <NavItem icon={UserIcon} path="/profile" label="Profile" />
           ) : (
