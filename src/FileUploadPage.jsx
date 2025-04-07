@@ -266,7 +266,7 @@ const FileUploadPrint = () => {
   return (
     <>
       <Nav></Nav>
-      <div className="min-h-screen bg-gray-50 p-6 mt-20">
+      <div className="min-h-screen pb-[60px] bg-gray-50 p-6 mt-20">
         <nav className="flex" aria-label="Breadcrumb">
           <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
             <li className="inline-flex items-center">

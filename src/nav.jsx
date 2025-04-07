@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { auth, db } from "./component/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Upload, Settings, User as UserIcon, LogOut, Menu } from "react-feather";
+import { Home, Upload, Settings, User as UserIcon, LogOut, Menu ,Truck,Printer } from "react-feather";
 import { jwtDecode } from "jwt-decode";
 import P from  "./assets/p.png";
 import { toast } from "react-hot-toast"; // Changed from react-toastify to react-hot-toast
@@ -295,8 +295,8 @@ const Nav = ({ switchToSignup, onUserDetailsUpdate  }) => {
         {/* Bottom Navigation */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t z-10 flex justify-around py-2 shadow-lg">
           <NavItem icon={Home} path="/" label="Home" />
-          <NavItem icon={Upload} path="/locate" label="Services" />
-          <NavItem icon={Settings} path="/about" label="About" />
+          <NavItem icon={Printer} path="/locate" label="Hubs" />
+          <NavItem icon={Truck} path="/about" label="Orders" />
           {userDetails ? (
             <NavItem icon={UserIcon} path="/profile" label="Profile" />
           ) : (
