@@ -85,7 +85,7 @@ const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
         const response = await axios.post(`${backendurl}/login`, {
           email: user.email,
           uid: user.uid,
-          name: userData?.name || user.displayName, // Use optional chaining
+          name: userData?.name || user.displayName, 
         });
 
         localStorage.setItem('token', response.data.token);
@@ -95,7 +95,7 @@ const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
         navigate("/locate");
         onClose();
       } else {
-        toast.warning("Please verify your email to continue.");
+        toast.error("Please verify your email to continue.");
       }
     } catch (error) {
       handleLoginError(error);
