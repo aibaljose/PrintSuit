@@ -7,7 +7,7 @@ const HubCard = ({ hub }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="w-full max-w-sm  mx-auto">
+    <div className="w-full max-w-full  mx-auto">
       {isOpen && <Modal2 setisopen={setIsOpen} hub={hub} />}
       
       <div className="group relative bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100">

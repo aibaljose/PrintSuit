@@ -10,7 +10,7 @@ import {
   Printer,
   FileText,
   ChevronDown,
-  Menu
+  Menu, MapPin
 } from 'lucide-react';
 import { db, collection, getDocs, addDoc, getDoc, doc, updateDoc, deleteDoc } from "./component/firebase";
 
@@ -53,9 +53,9 @@ const PrinterLocator = () => {
   const handleInputChange = (e) => {
     const value = e.target.value;
     setLocationInput(value);
-    
-    
-  
+
+
+
 
     if (!value.trim()) {
       setFilteredOptions([]);
@@ -72,7 +72,7 @@ const PrinterLocator = () => {
     setShowDropdown(filtered1.length > 0);
   };
 
-  
+
 
 
 
@@ -140,7 +140,7 @@ const PrinterLocator = () => {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           });
-          setLocationInput(userLocation.lat,userLocation.lng);
+          setLocationInput(userLocation.lat, userLocation.lng);
         },
         (error) => {
           console.error("Error fetching current location:", error.message);
@@ -193,185 +193,236 @@ const PrinterLocator = () => {
     const options = ["kanjirappally", "kottyam", "Option 3"];
 
     const handleSelect = (place) => {
-   
+
       setLocationInput(place);
 
-      
 
-    
+
+
       setShowDropdown(false);
-      
+
     };
     return (
-      <div className="printerloc  bg-[#f1f5f9] min-h-screen animate-fadeIn">
+      <div className="printerloc bg-[#f1f5f9] min-h-screen">
         <Nav className="z-50" />
 
-        <div className="flex flex-col gap-6 px-10 pt-3 mt-20 ">
-
-
-          <div className=" p-6 bg-white rounded-md  border border-gray-100/80 w-full mx-auto">
-
-            <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
-              {/* Search Bar Section */}
-              <div className="w-full  flex  items-center gap-3">
-              <div className="relative ">
-        <input
-          type="text"
-          placeholder="Enter a location..."
-          className="w-[320px] rounded-full bg-gray-50 px-5 py-3.5 text-base text-gray-900 
-            border border-gray-200 placeholder:text-gray-400 shadow-sm
-            focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
-            transition-all duration-300 ease-in-out"
-          value={locationInput}
-          onChange={handleInputChange}
-          onFocus={() => setShowDropdown(true)}
-          
-          onBlur={() => {
-            setTimeout(() => setShowDropdown(false), 200);
-            handleLocationSearch();
-          }}
-          
-        />
-
-        {/* Custom Dropdown List */}
-        {showDropdown && (
-          <ul className="absolute  mt-2 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-auto z-10">
-            {filteredOptions.map((place, index) => (
-              <li
-                key={index}
-                className="p-3 cursor-pointer hover:bg-indigo-500 hover:text-white transition duration-200"
-                onMouseDown={() => handleSelect(place)}
-              >
-                {place}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-                <button
-                  onClick={handleCurrentLocation}
-                  className="p-3 rounded-full bg-gray-50 border border-gray-200 hover:bg-gray-100 
-              shadow-sm hover:shadow-md transition-all duration-300"
-                  aria-label="Use current location"
-                >
-                  <img src={loc} height="24px" width="24px" alt="Current Location" />
-                </button>
-                <button
-                  onClick={handleLocationSearch}
-                  className="px-6 py-3 bg-indigo-600 text-white rounded-full font-semibold
-              hover:bg-indigo-700 active:bg-indigo-800 shadow-md hover:shadow-lg
-              transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={loading}
-                >
-                  {loading ? "Searching..." : "Search"}
-                </button>
-              </div>
-
-              {/* Filters Section */}
-              <div className="w-full lg:w-3/5 flex flex-col gap-4">
-                {/* Mobile Filter Toggle */}
-                <div className="lg:hidden flex justify-between items-center">
-                  <span className="text-lg font-semibold text-gray-800">Filters</span>
-                  <button
-                    onClick={() => setIsFilterOpen(!isFilterOpen)}
-                    className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-200"
-                  >
-                    <Menu className="h-5 w-5 text-gray-600" />
-                  </button>
-                </div>
-
-                {/* Filter Inputs */}
-                <div
-                  className={`flex flex-col lg:flex-row items-start lg:items-center gap-4 lg:gap-6 ${isFilterOpen ? "block" : "hidden lg:flex"
-                    }`}
-                >
-                  {/* Range Input */}
-                  <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <Ruler className="text-gray-500 h-5 w-5" />
-                    <label className="font-semibold text-gray-700 whitespace-nowrap">
-                      Range (km):
-                    </label>
+        <div className="flex flex-col gap-6 px-4 md:px-8 lg:px-10 pt-3 mt-20 pb-6">
+          {/* Search and Filter Container */}
+          <div className="bg-white lg:flex lg:flex-row lg:gap-4 item-center justify-center rounded-xl shadow-lg border border-gray-100/80 overflow-hidden ">
+            {/* Search Section */}
+            <div className="p-2 md:p-6 border-b border-gray-100 flex items-center w-[80%]">
+              <div className="flex w-[80%] flex-col md:flex-row gap-4">
+                <div className="flex gap-2 w-full relative">
+                  <div className="relative w-full flex items-center">
+                    <div className="absolute left-4 inset-y-0 flex items-center pointer-events-none">
+                      <svg
+                        className="h-5 w-5 text-gray-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                      </svg>
+                    </div>
                     <input
-                      type="number"
-                      className="w-24 px-4 py-2.5 bg-gray-50 rounded-full border border-gray-200 
-                  shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
-                  transition-all duration-300"
-                      value={range}
-                      onChange={(e) => setRange(e.target.value)}
-                      min="1"
+                      type="text"
+                      placeholder="Search location..."
+                      className="w-full rounded-xl bg-gray-50/50 pl-12 pr-4 py-3.5 text-gray-900 
+                      border border-gray-200 placeholder:text-gray-400
+                      focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500
+                      transition-all duration-300"
+                      value={locationInput}
+                      onChange={handleInputChange}
+                      onFocus={() => setShowDropdown(true)}
+                      onBlur={() => {
+                        setTimeout(() => setShowDropdown(false), 200);
+                        handleLocationSearch();
+                      }}
                     />
                   </div>
 
-                  {/* Printer Type Select */}
-                  <div className="relative w-full sm:w-48">
-                    <Printer className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 h-5 w-5" />
-                    <select
-                      className="w-full pl-12 pr-10 py-2.5 bg-gray-50 rounded-full border border-gray-200 
-                  shadow-sm appearance-none cursor-pointer font-medium text-gray-700
-                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
-                  transition-all duration-300"
-                      value={filters.type}
-                      onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+                  {/* Dropdown Menu */}
+                  {showDropdown && (
+                  <ul className="absolute w-full bg-white border border-gray-100 rounded-xl shadow-xl 
+                  max-h-60 overflow-y-auto z-50 top-0 left-0 right-0 backdrop-blur-sm"
+        style={{ 
+          top: "calc(100% + 5px)"
+        }}>
+                      {filteredOptions.map((place, index) => (
+                        <li
+                          key={index}
+                          className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-indigo-50 transition-colors
+                          text-gray-700 hover:text-indigo-600"
+                          onMouseDown={() => handleSelect(place)}
+                        >
+                          <svg
+                            className="h-4 w-4 text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                            />
+                          </svg>
+                          {place}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <button
+                    onClick={handleCurrentLocation}
+                    className="group relative px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 
+                    hover:bg-gray-100 hover:border-indigo-300 hover:shadow-md
+                    transition-all duration-300"
+                    aria-label="Use current location"
+                  >
+                    <svg
+                      className="h-5 w-5 text-gray-500 group-hover:text-indigo-600 transition-colors"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
                     >
-                      <option value="">All Printer Types</option>
-                      <option value="Color">Color</option>
-                      <option value="Black & White">Black & White</option>
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-5 w-5 pointer-events-none" />
-                  </div>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                    <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      Use current location
+                    </span>
+                  </button>
+                </div>
 
-                  {/* Paper Size Select */}
-                  <div className="relative w-full sm:w-48">
-                    <FileText className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 h-5 w-5" />
-                    <select
-                      className="w-full pl-12 pr-10 py-2.5 bg-gray-50 rounded-full border border-gray-200 
-                  shadow-sm appearance-none cursor-pointer font-medium text-gray-700
-                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
-                  transition-all duration-300"
-                      value={filters.paperSize}
-                      onChange={(e) => setFilters({ ...filters, paperSize: e.target.value })}
-                    >
-                      <option value="">All Paper Sizes</option>
-                      <option value="A4">A4</option>
-                      <option value="A3">A3</option>
-                      <option value="A5">A5</option>
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-5 w-5 pointer-events-none" />
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+
+                  {/* <button
+                    onClick={handleLocationSearch}
+                    disabled={loading}
+                    className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium
+                    hover:bg-indigo-700 active:bg-indigo-800 
+                    transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed
+                    flex items-center gap-2 min-w-[120px] justify-center shadow-sm hover:shadow-md"
+                  >
+                    {loading ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        <span>Searching</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Search</span>
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                      </>
+                    )}
+                  </button> */}
+                </div>
+              </div>
+            </div>
+
+            {/* Filters Section */}
+            <div className="flex gap-8 p-4 ">
+              {/* Range Slider */}
+              <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-medium text-gray-700 flex items-center">
+                    <MapPin className="text-indigo-500 h-4 w-4 mr-1" />
+                    Distance
+                  </label>
+                  <span className="text-xs text-gray-600">{range} km</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="50"
+                  value={range}
+                  onChange={(e) => setRange(e.target.value)}
+                  className="w-full h-1.5 bg-gray-200 rounded appearance-none cursor-pointer accent-indigo-600"
+                />
+              </div>
+
+              {/* Printer Type */}
+              <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
+                <div className="flex items-center mb-2">
+                  <Printer className="text-indigo-500 h-4 w-4 mr-1" />
+                  <label className="text-xs font-medium text-gray-700">Printer Type</label>
+                </div>
+                <select
+                  className="w-full text-xs rounded bg-gray-50 border border-gray-200 px-2 py-1.5 text-gray-700"
+                  value={filters.type}
+                  onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+                >
+                  <option value="">All Types</option>
+                  <option value="Color">Color</option>
+                  <option value="Black & White">Black & White</option>
+                </select>
+              </div>
+
+              {/* Paper Size */}
+              <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
+                <div className="flex items-center mb-2">
+                  <FileText className="text-indigo-500 h-4 w-4 mr-1" />
+                  <label className="text-xs font-medium text-gray-700">Paper Size</label>
+                </div>
+                <select
+                  className="w-full text-xs rounded bg-gray-50 border border-gray-200 px-2 py-1.5 text-gray-700"
+                  value={filters.paperSize}
+                  onChange={(e) => setFilters({ ...filters, paperSize: e.target.value })}
+                >
+                  <option value="">All Sizes</option>
+                  <option value="A4">A4</option>
+                  <option value="A3">A3</option>
+                  <option value="A5">A5</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex  flex-col-reverse lg:flex-row gap-6 h-full lg:h-[100vh] pb-[100px] w-full">
+            {/* Results Section - Updated with proper height and overflow */}
+            <div className="flex-1 h-full overflow-hidden ">
+              <div className="bg-white rounded-lg shadow p-4 h-full ">
+                <h2 className="text-xl font-semibold text-gray-700 mb-4">
+                  Nearby Printing Hubs
+                </h2>
+                {/* Scrollable container for cards */}
+                <div className="h-[calc(100%-3rem)] overflow-y-auto scrollbar-hide">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4">
+                    {filteredHubs.length > 0 ? (
+                      filteredHubs.map((hub) => (
+                        <HubCard key={hub.id} hub={hub} />
+                      ))
+                    ) : (
+                      <p className="text-gray-500 col-span-full text-center">
+                        No hubs found matching your filters.
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div className="flex  lg:flex-wrap w-[100%] flex-col-reverse lg:flex-row justify-around ">
-            {/* Map Component */}
 
-
-            {/* Results */}
-            <div className="h-[100vh] lg:overflow-y-auto  p-2 ddnd ">
-              <h2 className="text-xl font-semibold text-gray-700 mb-4">
-                Nearby Printing Hubs
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 justify-between w-full  ">
-                {filteredHubs.length > 0 ? (
-                  filteredHubs.map((hub) => <HubCard key={hub.id} hub={hub} />,
-                    console.log("zsdf")
-
-                  )
-
-                ) : (
-                  <p className="text-gray-500 col-span-full text-center">
-                    No hubs found matching your filters.
-                  </p>
-                )}
-              </div>
-            </div>
-
-
-            <div className="lg:w-[35%]  lg:h-[100vh] h-[400px] pt-[20px] rounded-lg lg:overflow-hidden shadow ">
+            {/* Map Section - Updated with proper height */}
+            <div className="lg:w-[35%] h-[400px] lg:h-full rounded-lg overflow-hidden shadow-lg">
               <Map hubs={filteredHubs} />
             </div>
           </div>
-
         </div>
       </div>
     );

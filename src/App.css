@@ -325,9 +325,16 @@ input:-webkit-autofill {
 
 
 }
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
 
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 .printerloc {
-
+ 
 .group{
   display: flex;
   line-height: 28px;

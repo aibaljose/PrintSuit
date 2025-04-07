@@ -214,7 +214,47 @@ const Nav = ({ switchToSignup, onUserDetailsUpdate  }) => {
             PrintSuit
           </div>
           <div onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          {renderProfileIcon()}
+          {userDetails ? (
+              <div className="relative">
+                <div
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="cursor-pointer focus:outline-none"
+                >
+                  {renderProfileIcon()}
+                 
+                </div>
+                
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-3 w-56 bg-white border border-gray-100 rounded-xl shadow-2xl overflow-hidden">
+                    <div className="py-2">
+                      <div
+                        onClick={() => {
+                          navigate("/profile");
+                          setDropdownOpen(false);
+                        }}
+                        className="px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors duration-200 cursor-pointer"
+                      >
+                        Profile Settings
+                      </div>
+                      <div
+                        onClick={handleLogout}
+                        className="px-4 py-3 text-sm text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors duration-200 cursor-pointer flex items-center"
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sign Out
+                      </div>
+                    </div>
+              
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => switchToSignup()}
+                className="px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg"
+              >
+                Print Now              </button>
+            )}
           </div>
         </div>
 

@@ -13,6 +13,8 @@ import axios from 'axios';
 import { collection, doc, getDoc } from "firebase/firestore";
 
 const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
+  const backendurl = "https://printsuit-backend.onrender.com";
+  const localhosturl = "http://localhost:5000";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -37,7 +39,7 @@ const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
         }
 
         // Continue with existing login logic
-        const response = await axios.post('https://printsuit-backend.onrender.com/auth/google', {
+        const response = await axios.post(`${backendurl}/auth/google`, {
           uid: user.uid,
           email: user.email,
           name: user.displayName,
@@ -80,7 +82,7 @@ const LoginModal = ({ isOpen, onClose, navigate, switchToSignup }) => {
         }
 
         // Continue with existing login logic
-        const response = await axios.post('https://printsuit-backend.onrender.com/login', {
+        const response = await axios.post(`${backendurl}/login`, {
           email: user.email,
           uid: user.uid,
           name: userData?.name || user.displayName, // Use optional chaining

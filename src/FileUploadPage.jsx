@@ -11,7 +11,7 @@ import Nav from "./nav"
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import PDFPreview from './pdfpreview';
-
+const backendurl = "https://printsuit-backend.onrender.com";
 // Add this constant at the top of your file with other constants
 const PAPER_SIZES = {
   'A4': { width: 210, height: 297, name: 'A4 (210 × 297 mm)' },
@@ -46,7 +46,7 @@ const FileUploadPrint = () => {
       const token = localStorage.getItem("token");
 
       setAmount(files.reduce((sum, file) => sum + parseFloat(calculatePrice(file)), 0).toFixed(2));
-      const { data: order } = await axios.post("http://localhost:5000/create-order",
+      const { data: order } = await axios.post(`${backendurl}/create-order`,
         { amount },
         {
           headers: { Authorization: `Bearer ${token}` }
@@ -61,7 +61,7 @@ const FileUploadPrint = () => {
         description: "PrintFrom anywhere",
         order_id: order.id,
         handler: async function (response) {
-          await axios.post("http://localhost:5000/verify-payment",
+          await axios.post(`${backendurl}/verify-payment`,
             response,
             {
               headers: { Authorization: `Bearer ${token}` }
