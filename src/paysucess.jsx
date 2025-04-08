@@ -37,8 +37,8 @@ const PaymentSuccess = () => {
         
         // Transform the database data to match the format needed for display
         const formattedOrderDetails = {
-          orderId: jobData.orderId || jobid,
-          amount: (jobData.totalAmount), // Assuming amount is stored in cents
+          orderId: jobData.payment.orderId || jobid,
+          amount: (jobData.payment.amount), // Assuming amount is stored in cents
           date: new Date(jobData.createdAt).toLocaleDateString(),
           time: new Date(jobData.createdAt).toLocaleTimeString(),
           files: jobData.files.map(file => ({
