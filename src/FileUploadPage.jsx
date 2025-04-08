@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { PDFDocument } from 'pdf-lib';
-import { Upload, FileText, ChevronDown, ChevronUp, X, Calendar, Clock,Eye } from 'lucide-react';
+import { Upload, FileText, ChevronDown, ChevronUp, X, Calendar, Clock, Eye } from 'lucide-react';
 import { db, collection, getDocs, addDoc, getDoc, doc, updateDoc, deleteDoc } from "./component/firebase";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
@@ -11,7 +11,10 @@ import Nav from "./nav"
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import PDFPreview from './pdfpreview';
+import toast, { Toaster } from 'react-hot-toast';
 const backendurl = "https://printsuit-backend.onrender.com";
+// const backendurl = "http://localhost:5000";
+
 // Add this constant at the top of your file with other constants
 const PAPER_SIZES = {
   'A4': { width: 210, height: 297, name: 'A4 (210 × 297 mm)' },
@@ -23,7 +26,7 @@ const PAPER_SIZES = {
 const FileUploadPrint = () => {
   const [previewFile, setPreviewFile] = useState(null);
   const location = useLocation();
-  const { hubname,hubid } = location.state || {};
+  const { hubname, hubid } = location.state || {};
   const navigate = useNavigate();
 
   // Common schedule state for all files
@@ -61,15 +64,22 @@ const FileUploadPrint = () => {
         description: "PrintFrom anywhere",
         order_id: order.id,
         handler: async function (response) {
-          await axios.post(`${backendurl}/verify-payment`,
-            response,
+          toast.promise(
+            (async () => {
+              await axios.post(`${backendurl}/verify-payment`, response, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+      
+              const printJobId = await storePrintJob(response);
+              console.log("Print Job ID:", printJobId);
+              return printJobId;
+            })(),
             {
-              headers: { Authorization: `Bearer ${token}` }
+              loading: 'Verifying payment...',
+              success: <b>Payment successful & job stored!</b>,
+              error: <b>Payment verification failed!</b>,
             }
           );
-          const printJobId = await storePrintJob(response);
-          alert("Payment Successful!");
-          console.log(response);
         },
         prefill: {
           name: "John Doe",
@@ -80,11 +90,13 @@ const FileUploadPrint = () => {
           color: "#0000",
         },
       };
+      
 
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
       console.error("Payment error:", error);
+      toast.error(error)
     }
   };
 
@@ -150,6 +162,7 @@ const FileUploadPrint = () => {
       return docRef.id;
     } catch (error) {
       console.error("Error storing print job:", error);
+      toast.error("Error storing print job: " + error.message);
       throw error;
     }
   };
@@ -343,52 +356,86 @@ const FileUploadPrint = () => {
                 <div className="bg-white rounded-lg shadow-sm mt-6">
                   {files.map(file => (
                     <div key={file.id} className="p-4 border-b">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <FileText className="w-8 h-8 text-gray-400" />
-                          <div>
-                            <h3 className="font-medium text-gray-800">{file.file.name}</h3>
+                      {/* File Header */}
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        {/* File Info */}
+                        <div className="flex items-start gap-4 flex-1 min-w-0">
+                          <FileText className="w-8 h-8 text-gray-400 flex-shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-medium text-gray-800 truncate" title={file.file.name}>
+                              {file.file.name}
+                            </h3>
                             <p className="text-sm text-gray-500">
                               {file.settings.pageCount} pages • {formatFileSize(file.size)} •
                               {file.type === 'application/pdf' ? ' PDF' : ' Unknown format'}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-4">
-                          <span className="text-lg font-semibold text-gray-700">
+
+                        {/* Actions */}
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2 sm:mt-0">
+                          <span className="text-lg font-semibold text-gray-700 order-1 sm:order-none">
                             ₹{calculatePrice(file)}
                           </span>
-                          <button
-                            onClick={() => setExpandedFile(expandedFile === file.id ? null : file.id)}
-                            className="text-gray-400 hover:text-gray-600"
-                          >
-                            {expandedFile === file.id ? <ChevronUp /> : <ChevronDown />}
-                          </button>
-                          <button
-                            onClick={() => removeFile(file.id)}
-                            className="text-red-400 hover:text-red-600"
-                          >
-                            <X />
-                          </button>
-                          <button
-                            onClick={() => setPreviewFile(previewFile?.id === file.id ? null : file)}
-                            className="text-gray-400 hover:text-gray-600 flex items-center"
-                          >
-                            <Eye className="w-4 h-4 mr-1" />
-                            Preview
-                          </button>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setPreviewFile(previewFile?.id === file.id ? null : file)}
+                              className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg
+                              bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                            >
+                              <Eye className="w-4 h-4 mr-1.5" />
+                              <span className="hidden sm:inline">Preview</span>
+                            </button>
+
+                            <button
+                              onClick={() => setExpandedFile(expandedFile === file.id ? null : file.id)}
+                              className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+                              title={expandedFile === file.id ? "Hide settings" : "Show settings"}
+                            >
+                              {expandedFile === file.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                            </button>
+
+                            <button
+                              onClick={() => removeFile(file.id)}
+                              className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
+                              title="Remove file"
+                            >
+                              <X size={20} />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                      {/* PDF Preview */}
+
+                      {/* PDF Preview Section */}
                       {previewFile?.id === file.id && (
-                        <div className="mt-4">
-                          <PDFPreview
-                            file={file.file}
-                            settings={{
-                              ...file.settings,
-                              paperSize: PAPER_SIZES[file.settings.paperSize]
-                            }}
-                          />
+                        <div className="mt-4 border-t pt-4">
+                          <div className="relative bg-gray-100 rounded-lg overflow-hidden">
+                            <div className="absolute top-2 right-2">
+                              <button
+                                onClick={() => setPreviewFile(null)}
+                                className="p-1.5 rounded-full bg-white/90 text-gray-600 hover:bg-white 
+                                transition-colors shadow-sm"
+                                title="Close preview"
+                              >
+                                <X size={16} />
+                              </button>
+                            </div>
+                            <PDFPreview
+                              file={file.file}
+                              settings={{
+                                ...file.settings,
+                                paperSize: PAPER_SIZES[file.settings.paperSize]
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Settings Section (when expanded) */}
+                      {expandedFile === file.id && (
+                        <div className="mt-4 border-t pt-4">
+                          {/* ... existing settings content ... */}
                         </div>
                       )}
                     </div>
@@ -541,7 +588,7 @@ const FileUploadPrint = () => {
                           <option value="custom">Custom Range</option>
                         </select>
                       </div>
-                     
+
                       {files.find(f => f.id === expandedFile).settings.pageRange === 'custom' && (
                         <div className="col-span-2">
                           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -628,8 +675,8 @@ const FileUploadPrint = () => {
                       ₹{files.reduce((sum, file) => sum + parseFloat(calculatePrice(file)), 0).toFixed(2)}
                     </span>
                   </div>
-                  <button 
-                    onClick={handlePayment} 
+                  <button
+                    onClick={handlePayment}
                     className="w-full py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
                   >
                     Proceed to Checkout
