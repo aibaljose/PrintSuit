@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import PDFPreview from './pdfpreview';
 import toast, { Toaster } from 'react-hot-toast';
 const backendurl = "https://printsuit-backend.onrender.com";
-// const backendurl = "http://localhost:5000";
+const frontend = "http://localhost:5000";
 
 // Add this constant at the top of your file with other constants
 const PAPER_SIZES = {
@@ -36,6 +36,10 @@ const FileUploadPrint = () => {
     time: ''
   });
 
+  const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+
+
   const [amount, setAmount] = useState(0);
   useEffect(() => {
     const script = document.createElement("script");
@@ -46,40 +50,51 @@ const FileUploadPrint = () => {
 
   const handlePayment = async () => {
     try {
-      const token = localStorage.getItem("token");
-
-      setAmount(files.reduce((sum, file) => sum + parseFloat(calculatePrice(file)), 0).toFixed(2));
-      const { data: order } = await axios.post(`${backendurl}/create-order`,
-        { amount },
+      const calculatedAmount = parseFloat(
+        files
+          .reduce((sum, file) => sum + parseFloat(calculatePrice(file)), 0)
+          .toFixed(2)
+      );
+  
+       // still keep this for UI update
+  
+      await toast.promise(
+        wait(4000),
         {
-          headers: { Authorization: `Bearer ${token}` }
+          loading: 'Processing...',
+          success: 'Done!',
+          error: 'Something went wrong.',
         }
       );
-
+      setAmount(calculatedAmount);
+      const token = localStorage.getItem("token");
+  
+      const { data: order } = await axios.post(
+        `${backendurl}/create-order`,
+        { amount: calculatedAmount }, // use the local variable here
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+  
       const options = {
         key: "rzp_test_5fIpDiq0CC4SjF",
-        amount: amount,
+        amount: calculatedAmount * 100, // Razorpay expects amount in paise (not rupees)
         currency: "INR",
         name: "PrintSuit",
         description: "PrintFrom anywhere",
         order_id: order.id,
         handler: async function (response) {
-          toast.promise(
-            (async () => {
-              await axios.post(`${backendurl}/verify-payment`, response, {
-                headers: { Authorization: `Bearer ${token}` }
-              });
-      
-              const printJobId = await storePrintJob(response);
-              console.log("Print Job ID:", printJobId);
-              return printJobId;
-            })(),
+          await axios.post(
+            `${backendurl}/verify-payment`,
+            response,
             {
-              loading: 'Verifying payment...',
-              success: <b>Payment successful & job stored!</b>,
-              error: <b>Payment verification failed!</b>,
+              headers: { Authorization: `Bearer ${token}` },
             }
           );
+          const printJobId = await storePrintJob(response);
+          alert("Payment Successful!");
+          console.log(response);
         },
         prefill: {
           name: "John Doe",
@@ -90,15 +105,15 @@ const FileUploadPrint = () => {
           color: "#0000",
         },
       };
-      
-
+  
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
       console.error("Payment error:", error);
-      toast.error(error)
+      toast.error("Payment failed");
     }
   };
+  
 
   const [files, setFiles] = useState([]);
   const [expandedFile, setExpandedFile] = useState(null);
@@ -150,7 +165,11 @@ const FileUploadPrint = () => {
           }
         })),
         payment: {
-          amount: amount,
+          amount:parseFloat(
+            files
+              .reduce((sum, file) => sum + parseFloat(calculatePrice(file)), 0)
+              .toFixed(2)
+          ),
           id: paymentResponse?.razorpay_payment_id,
           orderId: paymentResponse?.razorpay_order_id
         }

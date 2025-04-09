@@ -18,7 +18,8 @@ const SignupModal = ({ isOpen, onClose, navigate, switchToLogin }) => {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
+    const backendurl = "https://printsuit-backend.onrender.com";
+    const localhosturl = "http://localhost:5000";
     // Validation states
     const [validations, setValidations] = useState({
         minLength: false,
