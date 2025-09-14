@@ -1,4 +1,3 @@
-Of course. Here is a full research paper on the PrintSuit concept, complete with expanded sections, formal analysis, and academic citations.
 
 ---
 
